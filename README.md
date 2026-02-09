@@ -2,6 +2,7 @@
 Fast food data across the US
 <<<<<<< HEAD
 Zaxbys
+Mcdonalds
 =======
 
 What is the project about and links:
