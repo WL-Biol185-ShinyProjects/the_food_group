@@ -11,6 +11,7 @@ library(tidyverse)
 
 file.info("FoodData.txt")
 
+#Reads Jacob's Food Data
 FoodData <- haven::read_xpt("FoodData.txt")
 FoodData
 
@@ -18,5 +19,9 @@ str(FoodData)
 names(FoodData)
 nrow(FoodData)
 
+
+#Reads Gracie's fast food resautants data
+Fast_Food_Restaurants <- read_csv("Fast_Food_Restaurants_US.csv")
+Fast_Food_Restaurants
 ```
 
