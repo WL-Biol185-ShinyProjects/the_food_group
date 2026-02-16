@@ -4,6 +4,8 @@ output: html_document
 ---
 
 <<<<<<< HEAD
+```{r}
+
 # app.R - Fast Food Analytics Dashboard with Large Datasets
 
 # Load required libraries
@@ -1368,7 +1370,8 @@ server <- function(input, output, session) {
 
 
 shinyApp(ui = ui, server = server)
-=======
+```
+
 
 ```{r}
 library(tidyverse)
