@@ -1,0 +1,1394 @@
+---
+title: "FOODGROUP"
+output: html_document
+---
+
+<<<<<<< HEAD
+# app.R - Fast Food Analytics Dashboard with Large Datasets
+
+# Load required libraries
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(plotly)
+library(DT)
+library(leaflet)
+library(lubridate)
+library(scales)
+
+# ============================================================================
+# DATA GENERATION - LARGE DATASETS (10K-100K rows)
+# ============================================================================
+
+set.seed(42)
+
+# ========== DATASET 1: TRANSACTION DATA (~100,000 rows) ==========
+# Individual customer transactions across all stores
+
+# Fast Food Chains
+chains <- c("McDonald's", "Subway", "Starbucks", "Chick-fil-A", "Taco Bell",
+            "Burger King", "Wendy's", "Dunkin'", "Chipotle", "KFC",
+            "Sonic", "Arby's", "Panera Bread", "Popeyes", "Five Guys",
+            "In-N-Out", "Jimmy John's", "Panda Express", "Del Taco", "Jack in the Box")
+
+# Generate 100,000 transactions over 365 days
+n_transactions <- 100000
+
+transactions <- data.frame(
+  transaction_id = 1:n_transactions,
+  date = sample(seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "day"), 
+                n_transactions, replace = TRUE),
+  chain = sample(chains, n_transactions, replace = TRUE,
+                 prob = c(0.18, 0.10, 0.12, 0.08, 0.09, 0.07, 0.06, 0.08, 
+                          0.05, 0.05, 0.03, 0.02, 0.02, 0.02, 0.01,
+                          0.01, 0.01, 0.01, 0.005, 0.005))
+) %>%
+  mutate(
+    # Hour of transaction (peak during meal times)
+    hour = sample(6:23, n(), replace = TRUE, 
+                  prob = c(0.02, 0.05, 0.08, 0.03, 0.02, 0.10, 0.12, 0.08, 
+                           0.03, 0.03, 0.05, 0.08, 0.05, 0.03, 0.04, 
+                           0.06, 0.08, 0.04)),
+    
+    # Day of week
+    day_of_week = wday(date, label = TRUE),
+    month = month(date, label = TRUE),
+    is_weekend = day_of_week %in% c("Sat", "Sun"),
+    
+    # Transaction amount varies by chain and meal time
+    base_amount = case_when(
+      chain == "Five Guys" ~ 15.0,
+      chain == "Chipotle" ~ 12.0,
+      chain == "Panera Bread" ~ 11.0,
+      chain == "Chick-fil-A" ~ 10.0,
+      chain == "Starbucks" ~ 6.5,
+      chain == "Subway" ~ 8.5,
+      chain == "McDonald's" ~ 9.0,
+      TRUE ~ 8.0
+    ),
+    
+    # Meal period affects transaction size
+    meal_period = case_when(
+      hour %in% 6:10 ~ "Breakfast",
+      hour %in% 11:14 ~ "Lunch",
+      hour %in% 17:21 ~ "Dinner",
+      TRUE ~ "Snack"
+    ),
+    
+    meal_multiplier = case_when(
+      meal_period == "Dinner" ~ 1.3,
+      meal_period == "Lunch" ~ 1.2,
+      meal_period == "Breakfast" ~ 0.9,
+      TRUE ~ 0.7
+    ),
+    
+    # Final transaction amount with randomness
+    transaction_amount = round(base_amount * meal_multiplier * rnorm(n(), 1, 0.25), 2),
+    transaction_amount = pmax(transaction_amount, 3.0),  # Minimum $3
+    
+    # Number of items in order
+    num_items = pmax(1, round(rnorm(n(), 2.5, 1.2))),
+    
+    # Payment method
+    payment_method = sample(c("Credit Card", "Debit Card", "Cash", "Mobile Pay"), 
+                            n(), replace = TRUE, 
+                            prob = c(0.45, 0.30, 0.15, 0.10)),
+    
+    # Order type
+    order_type = sample(c("Drive-Thru", "Dine-In", "Takeout", "Delivery"), 
+                        n(), replace = TRUE,
+                        prob = c(0.55, 0.20, 0.20, 0.05)),
+    
+    # Customer satisfaction (1-5 stars)
+    rating = sample(1:5, n(), replace = TRUE, prob = c(0.05, 0.10, 0.20, 0.35, 0.30)),
+    
+    # Wait time in minutes
+    wait_time_minutes = case_when(
+      order_type == "Drive-Thru" ~ round(rnorm(n(), 4.5, 1.5)),
+      order_type == "Dine-In" ~ round(rnorm(n(), 8, 2)),
+      order_type == "Takeout" ~ round(rnorm(n(), 6, 1.8)),
+      order_type == "Delivery" ~ round(rnorm(n(), 28, 8))
+    ),
+    wait_time_minutes = pmax(wait_time_minutes, 1)
+  ) %>%
+  select(transaction_id, date, day_of_week, month, is_weekend, hour, 
+         meal_period, chain, transaction_amount, num_items, payment_method, 
+         order_type, rating, wait_time_minutes)
+
+# Save this dataset
+write.csv(transactions, "transactions.csv", row.names = FALSE)
+
+# ========== DATASET 2: STORE LOCATIONS (~15,000 rows) ==========
+# Detailed store-level data
+
+# US Cities with coordinates (expanded list)
+cities <- data.frame(
+  city = c("New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
+           "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose",
+           "Austin", "Jacksonville", "Fort Worth", "Columbus", "Charlotte",
+           "Seattle", "Denver", "Boston", "Nashville", "Detroit",
+           "Portland", "Las Vegas", "Memphis", "Atlanta", "Miami",
+           "Minneapolis", "Tampa", "Raleigh", "Cleveland", "Sacramento",
+           "Kansas City", "Milwaukee", "Baltimore", "Tucson", "Fresno",
+           "Albuquerque", "Mesa", "Virginia Beach", "Oklahoma City", "Omaha",
+           "Louisville", "Richmond", "New Orleans", "Pittsburgh", "Cincinnati",
+           "Riverside", "Anaheim", "Orlando", "St Louis", "San Francisco"),
+  state = c("NY", "CA", "IL", "TX", "AZ", "PA", "TX", "CA", "TX", "CA",
+            "TX", "FL", "TX", "OH", "NC", "WA", "CO", "MA", "TN", "MI",
+            "OR", "NV", "TN", "GA", "FL", "MN", "FL", "NC", "OH", "CA",
+            "MO", "WI", "MD", "AZ", "CA", "NM", "AZ", "VA", "OK", "NE",
+            "KY", "VA", "LA", "PA", "OH", "CA", "CA", "FL", "MO", "CA"),
+  lat = c(40.7128, 34.0522, 41.8781, 29.7604, 33.4484,
+          39.9526, 29.4241, 32.7157, 32.7767, 37.3382,
+          30.2672, 30.3322, 32.7555, 39.9612, 35.2271,
+          47.6062, 39.7392, 42.3601, 36.1627, 42.3314,
+          45.5152, 36.1699, 35.1495, 33.7490, 25.7617,
+          44.9778, 27.9506, 35.7796, 41.4993, 38.5816,
+          39.0997, 43.0389, 39.2904, 32.2226, 36.7378,
+          35.0844, 33.4152, 36.8529, 35.4676, 41.2565,
+          38.2527, 37.5407, 29.9511, 40.4406, 39.1031,
+          33.9533, 33.8366, 28.5383, 38.6270, 37.7749),
+  lon = c(-74.0060, -118.2437, -87.6298, -95.3698, -112.0740,
+          -75.1652, -98.4936, -117.1611, -96.7970, -121.8863,
+          -97.7431, -81.6557, -97.3308, -82.9988, -80.8431,
+          -122.3321, -104.9903, -71.0589, -86.7816, -83.0458,
+          -122.6784, -115.1398, -90.0490, -84.3880, -80.1918,
+          -93.2650, -82.4572, -78.6382, -81.6944, -121.4944,
+          -94.5786, -87.9065, -76.6122, -110.9747, -119.7871,
+          -106.6504, -111.8315, -76.0435, -97.5164, -95.9345,
+          -85.7585, -77.4360, -90.0715, -79.9959, -84.5120,
+          -117.3961, -117.9143, -81.3792, -90.1994, -122.4194),
+  population = c(8336817, 3979576, 2693976, 2320268, 1680992,
+                 1584064, 1547253, 1423851, 1343573, 1021795,
+                 978908, 911507, 909585, 898553, 885708,
+                 753675, 727211, 692600, 689447, 670031,
+                 652503, 641903, 651073, 498715, 467963,
+                 425336, 399700, 474069, 372624, 524943,
+                 495327, 577222, 585708, 548073, 542107,
+                 560513, 504258, 459470, 649021, 486051,
+                 617638, 230436, 383997, 302971, 309317,
+                 331360, 346824, 307573, 301578, 873965)
+)
+
+# Generate stores (more in bigger cities)
+store_locations <- cities %>%
+  slice(rep(1:n(), times = pmax(1, round(population / 30000)))) %>%
+  mutate(
+    store_id = row_number(),
+    chain = sample(chains, n(), replace = TRUE,
+                   prob = c(0.18, 0.10, 0.12, 0.08, 0.09, 0.07, 0.06, 0.08, 
+                            0.05, 0.05, 0.03, 0.02, 0.02, 0.02, 0.01,
+                            0.01, 0.01, 0.01, 0.005, 0.005)),
+    
+    # Add some location jitter
+    lat = lat + rnorm(n(), 0, 0.08),
+    lon = lon + rnorm(n(), 0, 0.08),
+    
+    # Store characteristics
+    has_drive_thru = sample(c(TRUE, FALSE), n(), replace = TRUE, prob = c(0.70, 0.30)),
+    has_indoor_seating = sample(c(TRUE, FALSE), n(), replace = TRUE, prob = c(0.65, 0.35)),
+    parking_spaces = sample(10:80, n(), replace = TRUE),
+    
+    # Operating hours
+    opens_at = sample(c(5, 6, 7, 8), n(), replace = TRUE, prob = c(0.15, 0.50, 0.30, 0.05)),
+    closes_at = sample(c(21, 22, 23, 24), n(), replace = TRUE, prob = c(0.10, 0.30, 0.40, 0.20)),
+    open_24h = sample(c(TRUE, FALSE), n(), replace = TRUE, prob = c(0.08, 0.92)),
+    
+    # Year opened
+    year_opened = sample(1995:2023, n(), replace = TRUE),
+    
+    # Performance metrics
+    avg_daily_customers = round(rnorm(n(), 450, 180)),
+    avg_daily_customers = pmax(avg_daily_customers, 50),
+    
+    avg_transaction_value = round(rnorm(n(), 11.50, 3.20), 2),
+    avg_transaction_value = pmax(avg_transaction_value, 5.00),
+    
+    employee_count = round(rnorm(n(), 18, 6)),
+    employee_count = pmax(employee_count, 5),
+    
+    # Customer ratings
+    google_rating = round(pmin(5, pmax(1, rnorm(n(), 3.8, 0.6))), 1),
+    
+    # Square footage
+    sq_footage = round(rnorm(n(), 2500, 800)),
+    sq_footage = pmax(sq_footage, 800)
+  )
+
+# Save this dataset
+write.csv(store_locations, "store_locations.csv", row.names = FALSE)
+
+# ========== DATASET 3: MENU ITEMS WITH SALES (~25,000 rows) ==========
+# Daily sales by menu item across different stores
+
+# Comprehensive menu items
+menu_catalog <- data.frame(
+  chain = c(
+    rep("McDonald's", 25), rep("Starbucks", 25), rep("Subway", 20),
+    rep("Chick-fil-A", 20), rep("Taco Bell", 25), rep("Burger King", 20),
+    rep("Wendy's", 20), rep("Dunkin'", 20), rep("Chipotle", 15),
+    rep("KFC", 20)
+  ),
+  item_name = c(
+    # McDonald's
+    "Big Mac", "Quarter Pounder", "McChicken", "Chicken McNuggets (10pc)", "Filet-O-Fish",
+    "Double Cheeseburger", "McDouble", "Premium Grilled Chicken", "Artisan Grilled Chicken",
+    "Buttermilk Crispy Chicken", "Large Fries", "Medium Fries", "Small Fries",
+    "Chicken Nuggets (6pc)", "Chicken Nuggets (20pc)", "McFlurry Oreo", "McFlurry M&M",
+    "Apple Pie", "Hash Browns", "Sausage McMuffin", "Egg McMuffin", "Hotcakes",
+    "Large Coke", "Large Sprite", "McCafe Latte",
+    
+    # Starbucks
+    "Pike Place Roast", "Caffe Americano", "Caffe Latte", "Cappuccino", "Caramel Macchiato",
+    "White Chocolate Mocha", "Pumpkin Spice Latte", "Iced Coffee", "Cold Brew",
+    "Vanilla Sweet Cream Cold Brew", "Caramel Frappuccino", "Mocha Frappuccino",
+    "Green Tea Frappuccino", "Strawberry Acai Refresher", "Mango Dragonfruit Refresher",
+    "Egg Bites (Bacon)", "Egg Bites (Veggie)", "Breakfast Sandwich", "Cheese Danish",
+    "Blueberry Muffin", "Chocolate Chip Cookie", "Cake Pop", "Protein Box",
+    "Croissant", "Banana Bread",
+    
+    # Subway
+    "Italian BMT 6-inch", "Italian BMT Footlong", "Turkey Breast 6-inch", "Turkey Breast Footlong",
+    "Veggie Delite 6-inch", "Veggie Delite Footlong", "Meatball Marinara 6-inch",
+    "Meatball Marinara Footlong", "Spicy Italian 6-inch", "Spicy Italian Footlong",
+    "Chicken Teriyaki 6-inch", "Steak & Cheese 6-inch", "Tuna 6-inch", "BLT 6-inch",
+    "Chips", "Cookie", "Fountain Drink (Medium)", "Fountain Drink (Large)",
+    "Salad", "Wrap",
+    
+    # Chick-fil-A
+    "Chicken Sandwich", "Spicy Chicken Sandwich", "Deluxe Chicken Sandwich",
+    "Grilled Chicken Sandwich", "Chicken Nuggets (8pc)", "Chicken Nuggets (12pc)",
+    "Grilled Nuggets (8pc)", "Chicken Strips (3pc)", "Chicken Strips (4pc)",
+    "Waffle Fries (Medium)", "Waffle Fries (Large)", "Mac & Cheese", "Side Salad",
+    "Fruit Cup", "Chick-fil-A Sauce", "Polynesian Sauce", "Lemonade (Medium)",
+    "Lemonade (Large)", "Iced Tea", "Milkshake",
+    
+    # Taco Bell
+    "Crunchy Taco", "Soft Taco", "Burrito Supreme", "Bean Burrito", "Beef Burrito",
+    "Quesadilla", "Chalupa Supreme", "Gordita Crunch", "Crunchwrap Supreme",
+    "Nachos BellGrande", "Nachos Supreme", "Cheesy Gordita Crunch", "XXL Grilled Stuft Burrito",
+    "Power Bowl", "7-Layer Burrito", "Chicken Quesadilla", "Steak Quesadilla",
+    "Cinnabon Delights", "Cinnamon Twists", "Mexican Pizza", "Doritos Locos Taco",
+    "Nacho Fries", "Baja Blast (Medium)", "Mountain Dew (Large)", "Freeze",
+    
+    # Burger King
+    "Whopper", "Double Whopper", "Whopper Jr", "Bacon King", "Impossible Whopper",
+    "Chicken Sandwich", "Spicy Chicken Sandwich", "Chicken Nuggets (10pc)",
+    "Chicken Fries", "Original Chicken Sandwich", "Fish Sandwich", "Medium Fries",
+    "Large Fries", "Onion Rings", "Mozzarella Sticks", "French Toast Sticks",
+    "Hash Browns", "Croissanwich", "Milkshake", "Soft Serve Cone",
+    
+    # Wendy's
+    "Dave's Single", "Dave's Double", "Baconator", "Son of Baconator", "Jr Bacon Cheeseburger",
+    "Spicy Chicken Sandwich", "Homestyle Chicken Sandwich", "Grilled Chicken Sandwich",
+    "Chicken Nuggets (10pc)", "Chicken Nuggets (6pc)", "Medium Fries", "Large Fries",
+    "Baked Potato", "Chili (Small)", "Chili (Large)", "Frosty (Small)", "Frosty (Medium)",
+    "Caesar Side Salad", "Apple Pecan Salad", "Lemonade",
+    
+    # Dunkin'
+    "Original Glazed Donut", "Chocolate Frosted Donut", "Boston Kreme Donut", "Jelly Donut",
+    "Glazed Chocolate Cake Donut", "Old Fashioned Donut", "Powdered Donut", "Blueberry Donut",
+    "Hot Coffee (Medium)", "Iced Coffee (Medium)", "Latte (Medium)", "Cappuccino (Medium)",
+    "Macchiato", "Cold Brew", "Hash Browns", "Breakfast Sandwich", "Wake-Up Wrap",
+    "Munchkins (10pc)", "Bagel with Cream Cheese", "Croissant",
+    
+    # Chipotle
+    "Chicken Burrito", "Steak Burrito", "Carnitas Burrito", "Barbacoa Burrito", "Veggie Burrito",
+    "Chicken Bowl", "Steak Bowl", "Carnitas Bowl", "Burrito Bowl", "Salad",
+    "Chicken Tacos (3)", "Steak Tacos (3)", "Guacamole", "Chips", "Chips & Guacamole",
+    
+    # KFC
+    "Original Recipe (2pc)", "Original Recipe (3pc)", "Extra Crispy (2pc)", "Extra Crispy (3pc)",
+    "Chicken Breast", "Chicken Thigh", "Chicken Drumstick", "Popcorn Chicken (Individual)",
+    "Popcorn Chicken (Large)", "Chicken Tenders (3pc)", "Famous Bowl", "Pot Pie",
+    "Mashed Potatoes", "Mac & Cheese", "Coleslaw", "Biscuit (1)", "Biscuits (4)",
+    "Corn on the Cob", "Green Beans", "Chocolate Chip Cookie"
+  ),
+  stringsAsFactors = FALSE
+) %>%
+  mutate(
+    item_id = row_number(),
+    category = case_when(
+      str_detect(item_name, "Burger|Whopper|Big Mac|Quarter|Sandwich|Burrito|Taco|Bowl|Wrap") ~ "Entree",
+      str_detect(item_name, "Fries|Hash|Chips|Rings|Sticks|Potato|Biscuit|Corn") ~ "Sides",
+      str_detect(item_name, "Coffee|Latte|Mocha|Espresso|Tea|Lemonade|Coke|Sprite|Drink|Freeze|Blast") ~ "Beverage",
+      str_detect(item_name, "Nuggets|Tenders|Strips|Popcorn Chicken") ~ "Chicken",
+      str_detect(item_name, "Donut|Cookie|Pie|McFlurry|Frosty|Cake|Muffin|Danish|Croissant|Cinnamon") ~ "Dessert",
+      str_detect(item_name, "Salad|Fruit") ~ "Healthy",
+      TRUE ~ "Other"
+    ),
+    price = case_when(
+      category == "Entree" ~ round(runif(n(), 5.99, 12.99), 2),
+      category == "Sides" ~ round(runif(n(), 1.99, 4.99), 2),
+      category == "Beverage" ~ round(runif(n(), 1.49, 5.99), 2),
+      category == "Chicken" ~ round(runif(n(), 4.99, 9.99), 2),
+      category == "Dessert" ~ round(runif(n(), 1.29, 4.99), 2),
+      category == "Healthy" ~ round(runif(n(), 3.99, 8.99), 2),
+      TRUE ~ round(runif(n(), 2.99, 6.99), 2)
+    ),
+    calories = case_when(
+      category == "Entree" ~ round(rnorm(n(), 600, 150)),
+      category == "Sides" ~ round(rnorm(n(), 350, 100)),
+      category == "Beverage" ~ round(rnorm(n(), 180, 80)),
+      category == "Chicken" ~ round(rnorm(n(), 450, 100)),
+      category == "Dessert" ~ round(rnorm(n(), 350, 100)),
+      category == "Healthy" ~ round(rnorm(n(), 250, 80)),
+      TRUE ~ round(rnorm(n(), 300, 100))
+    )
+  )
+
+# Generate daily item sales across multiple stores
+dates_sample <- sample(seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "day"), 30)
+stores_sample <- sample(unique(store_locations$store_id), 200)
+
+menu_sales <- expand.grid(
+  date = dates_sample,
+  store_id = stores_sample,
+  stringsAsFactors = FALSE
+) %>%
+  slice_sample(n = 25000) %>%
+  mutate(
+    item_id = sample(menu_catalog$item_id, n(), replace = TRUE)
+  ) %>%
+  left_join(menu_catalog, by = "item_id") %>%
+  left_join(store_locations %>% select(store_id, chain_store = chain, city, state), 
+            by = "store_id") %>%
+  mutate(
+    # Ensure chain matches
+    chain = chain_store,
+    
+    # Quantity sold varies by popularity
+    base_qty = case_when(
+      category == "Beverage" ~ 45,
+      category == "Entree" ~ 35,
+      category == "Sides" ~ 40,
+      category == "Chicken" ~ 30,
+      category == "Dessert" ~ 20,
+      TRUE ~ 25
+    ),
+    
+    quantity_sold = pmax(1, round(rnorm(n(), base_qty, base_qty * 0.4))),
+    
+    # Revenue
+    daily_revenue = quantity_sold * price,
+    
+    # Day of week effects
+    day_of_week = wday(date, label = TRUE),
+    is_weekend = day_of_week %in% c("Sat", "Sun")
+  ) %>%
+  select(date, day_of_week, is_weekend, store_id, city, state, chain, 
+         item_id, item_name, category, price, calories, quantity_sold, daily_revenue)
+
+# Save this dataset
+write.csv(menu_sales, "menu_sales.csv", row.names = FALSE)
+
+# ========== DATASET 4: EMPLOYEE DATA (~12,000 rows) ==========
+# Employee-level data across stores
+
+employee_data <- store_locations %>%
+  slice(rep(1:n(), times = pmax(1, round(employee_count / 3)))) %>%
+  mutate(
+    employee_id = row_number(),
+    first_name = sample(c("John", "Mary", "James", "Patricia", "Robert", "Jennifer", 
+                          "Michael", "Linda", "William", "Barbara", "David", "Elizabeth",
+                          "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah",
+                          "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa"),
+                        n(), replace = TRUE),
+    last_name = sample(c("Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia",
+                         "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez",
+                         "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore",
+                         "Jackson", "Martin", "Lee", "Perez", "Thompson", "White"),
+                       n(), replace = TRUE),
+    
+    position = sample(c("Crew Member", "Shift Leader", "Assistant Manager", "Store Manager"),
+                      n(), replace = TRUE, prob = c(0.65, 0.20, 0.10, 0.05)),
+    
+    hourly_wage = case_when(
+      position == "Store Manager" ~ round(runif(n(), 22, 30), 2),
+      position == "Assistant Manager" ~ round(runif(n(), 16, 22), 2),
+      position == "Shift Leader" ~ round(runif(n(), 13, 17), 2),
+      position == "Crew Member" ~ round(runif(n(), 11, 15), 2)
+    ),
+    
+    hire_date = sample(seq(as.Date("2018-01-01"), as.Date("2023-12-31"), by = "day"),
+                       n(), replace = TRUE),
+    
+    years_experience = as.numeric(difftime(as.Date("2024-01-01"), hire_date, units = "days")) / 365,
+    years_experience = round(years_experience, 1),
+    
+    hours_per_week = case_when(
+      position == "Store Manager" ~ 45,
+      position == "Assistant Manager" ~ 40,
+      TRUE ~ sample(c(15, 20, 25, 30, 35, 40), n(), replace = TRUE,
+                    prob = c(0.15, 0.20, 0.25, 0.20, 0.15, 0.05))
+    ),
+    
+    is_full_time = hours_per_week >= 32,
+    
+    performance_rating = sample(1:5, n(), replace = TRUE, prob = c(0.05, 0.15, 0.30, 0.35, 0.15)),
+    
+    age = pmax(16, round(rnorm(n(), 28, 8))),
+    
+    has_benefits = is_full_time & position %in% c("Store Manager", "Assistant Manager", "Shift Leader")
+  ) %>%
+  select(employee_id, store_id, chain, city, state, first_name, last_name, 
+         position, hourly_wage, hire_date, years_experience, hours_per_week, 
+         is_full_time, performance_rating, age, has_benefits)
+
+# Save this dataset
+write.csv(employee_data, "employee_data.csv", row.names = FALSE)
+
+# ============================================================================
+# Print dataset sizes
+# ============================================================================
+
+cat("\n=== DATASET SIZES ===\n")
+cat("Transactions:", nrow(transactions), "rows\n")
+cat("Store Locations:", nrow(store_locations), "rows\n")
+cat("Menu Sales:", nrow(menu_sales), "rows\n")
+cat("Employee Data:", nrow(employee_data), "rows\n")
+cat("Total:", nrow(transactions) + nrow(store_locations) + nrow(menu_sales) + nrow(employee_data), "rows\n\n")
+
+# ============================================================================
+# UI DEFINITION
+# ============================================================================
+
+ui <- dashboardPage(
+  skin = "red",
+  
+  dashboardHeader(title = "Fast Food Analytics USA"),
+  
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Dashboard", tabName = "dashboard", icon = icon("tachometer-alt")),
+      menuItem("Transaction Analysis", tabName = "transactions", icon = icon("receipt")),
+      menuItem("Store Performance", tabName = "stores", icon = icon("store")),
+      menuItem("Menu Analytics", tabName = "menu", icon = icon("hamburger")),
+      menuItem("Employee Insights", tabName = "employees", icon = icon("users")),
+      menuItem("Time Patterns", tabName = "timepatterns", icon = icon("clock")),
+      menuItem("Geographic Analysis", tabName = "geography", icon = icon("map")),
+      menuItem("Data Explorer", tabName = "data", icon = icon("table"))
+    )
+  ),
+  
+  dashboardBody(
+    tags$head(
+      tags$style(HTML("
+        .content-wrapper { background-color: #ecf0f5; }
+        .box { border-top: 3px solid #dd4b39; }
+      "))
+    ),
+    
+    tabItems(
+      # ========== DASHBOARD TAB ==========
+      tabItem(
+        tabName = "dashboard",
+        h2("Executive Dashboard"),
+        
+        fluidRow(
+          valueBoxOutput("total_revenue"),
+          valueBoxOutput("total_transactions"),
+          valueBoxOutput("avg_transaction")
+        ),
+        
+        fluidRow(
+          valueBoxOutput("total_stores_box"),
+          valueBoxOutput("total_employees"),
+          valueBoxOutput("avg_rating")
+        ),
+        
+        fluidRow(
+          box(
+            title = "Daily Revenue Trend",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 8,
+            plotlyOutput("revenue_trend", height = 350)
+          ),
+          box(
+            title = "Top 5 Chains by Revenue",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 4,
+            plotlyOutput("top_chains", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Transaction Distribution by Hour",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("hourly_dist", height = 300)
+          ),
+          box(
+            title = "Order Type Breakdown",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("order_type_pie", height = 300)
+          )
+        )
+      ),
+      
+      # ========== TRANSACTION ANALYSIS TAB ==========
+      tabItem(
+        tabName = "transactions",
+        h2("Transaction Analysis (100,000 Transactions)"),
+        
+        fluidRow(
+          box(
+            title = "Filters",
+            status = "warning",
+            width = 12,
+            column(3, selectInput("trans_chain", "Chain:", 
+                                  choices = c("All", unique(transactions$chain)),
+                                  selected = "All")),
+            column(3, selectInput("trans_meal", "Meal Period:",
+                                  choices = c("All", unique(transactions$meal_period)),
+                                  selected = "All")),
+            column(3, selectInput("trans_payment", "Payment Method:",
+                                  choices = c("All", unique(transactions$payment_method)),
+                                  selected = "All")),
+            column(3, dateRangeInput("trans_dates", "Date Range:",
+                                     start = min(transactions$date),
+                                     end = max(transactions$date)))
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Transaction Amount Distribution",
+            status = "info",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("trans_amount_hist", height = 350)
+          ),
+          box(
+            title = "Average Transaction by Day of Week",
+            status = "info",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("trans_dow", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Wait Time Analysis",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("wait_time_box", height = 350)
+          ),
+          box(
+            title = "Customer Satisfaction Ratings",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("rating_bar", height = 350)
+          )
+        )
+      ),
+      
+      # ========== STORE PERFORMANCE TAB ==========
+      tabItem(
+        tabName = "stores",
+        h2("Store Performance (15,000+ Stores)"),
+        
+        fluidRow(
+          box(
+            title = "Store Comparison",
+            status = "primary",
+            width = 12,
+            selectInput("store_metric", "Select Metric:",
+                        choices = c("Average Daily Customers" = "avg_daily_customers",
+                                    "Average Transaction Value" = "avg_transaction_value",
+                                    "Google Rating" = "google_rating",
+                                    "Employee Count" = "employee_count")),
+            plotlyOutput("store_comparison", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Drive-Thru vs No Drive-Thru",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("drivethu_analysis", height = 300)
+          ),
+          box(
+            title = "Store Size Distribution",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("sqft_dist", height = 300)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Store Growth by Year",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("store_growth_year", height = 350)
+          )
+        )
+      ),
+      
+      # ========== MENU ANALYTICS TAB ==========
+      tabItem(
+        tabName = "menu",
+        h2("Menu Item Analytics (25,000+ Sales Records)"),
+        
+        fluidRow(
+          box(
+            title = "Filters",
+            status = "info",
+            width = 12,
+            column(4, selectInput("menu_chain_filter", "Chain:",
+                                  choices = c("All", unique(menu_sales$chain)),
+                                  selected = "All")),
+            column(4, selectInput("menu_category_filter", "Category:",
+                                  choices = c("All", unique(menu_sales$category)),
+                                  selected = "All")),
+            column(4, selectInput("menu_city_filter", "City:",
+                                  choices = c("All", unique(menu_sales$city)),
+                                  selected = "All"))
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Top 20 Menu Items by Revenue",
+            status = "success",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("top_menu_items", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Price vs Quantity Sold",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("price_quantity_scatter", height = 350)
+          ),
+          box(
+            title = "Category Performance",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("category_revenue", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Calorie Distribution by Category",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("calorie_box", height = 350)
+          )
+        )
+      ),
+      
+      # ========== EMPLOYEE INSIGHTS TAB ==========
+      tabItem(
+        tabName = "employees",
+        h2("Employee Analytics (12,000+ Employees)"),
+        
+        fluidRow(
+          valueBoxOutput("total_emp_box"),
+          valueBoxOutput("avg_wage"),
+          valueBoxOutput("turnover_rate")
+        ),
+        
+        fluidRow(
+          box(
+            title = "Employee Distribution by Position",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("position_dist", height = 300)
+          ),
+          box(
+            title = "Wage Distribution",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("wage_hist", height = 300)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Experience vs Wage",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("exp_wage_scatter", height = 350)
+          ),
+          box(
+            title = "Performance Rating Distribution",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("performance_dist", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Full-Time vs Part-Time by Chain",
+            status = "info",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("ft_pt_chain", height = 350)
+          )
+        )
+      ),
+      
+      # ========== TIME PATTERNS TAB ==========
+      tabItem(
+        tabName = "timepatterns",
+        h2("Time-Based Patterns"),
+        
+        fluidRow(
+          box(
+            title = "Hourly Transaction Volume",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 12,
+            checkboxGroupInput("time_chains", "Select Chains:",
+                               choices = unique(transactions$chain)[1:8],
+                               selected = unique(transactions$chain)[1:4],
+                               inline = TRUE),
+            plotlyOutput("hourly_volume", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Weekend vs Weekday Revenue",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("weekend_weekday", height = 350)
+          ),
+          box(
+            title = "Monthly Seasonality",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("monthly_pattern", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Meal Period Performance",
+            status = "info",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("meal_period_perf", height = 350)
+          )
+        )
+      ),
+      
+      # ========== GEOGRAPHIC ANALYSIS TAB ==========
+      tabItem(
+        tabName = "geography",
+        h2("Geographic Distribution"),
+        
+        fluidRow(
+          box(
+            title = "Store Locations Map",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            selectInput("map_chain_filter", "Filter by Chain:",
+                        choices = c("All", unique(store_locations$chain)),
+                        selected = "All"),
+            leafletOutput("store_map", height = 600)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Top 15 Cities by Store Count",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("city_store_count", height = 350)
+          ),
+          box(
+            title = "Revenue by State",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("state_revenue", height = 350)
+          )
+        )
+      ),
+      
+      # ========== DATA EXPLORER TAB ==========
+      tabItem(
+        tabName = "data",
+        h2("Raw Data Explorer"),
+        
+        fluidRow(
+          box(
+            title = "Select Dataset",
+            status = "primary",
+            width = 12,
+            radioButtons("dataset_choice", "Choose Dataset:",
+                         choices = c("Transactions (100K rows)" = "transactions",
+                                     "Store Locations (15K rows)" = "stores",
+                                     "Menu Sales (25K rows)" = "menu",
+                                     "Employee Data (12K rows)" = "employees"),
+                         selected = "transactions",
+                         inline = TRUE),
+            downloadButton("download_data", "Download Selected Data", class = "btn-success")
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Data Table",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            DTOutput("data_table", height = 600)
+          )
+        )
+      )
+    )
+  )
+)
+
+# ============================================================================
+# SERVER LOGIC
+# ============================================================================
+
+server <- function(input, output, session) {
+  
+  # ========== DASHBOARD TAB ==========
+  output$total_revenue <- renderValueBox({
+    total_rev <- sum(transactions$transaction_amount)
+    valueBox(
+      paste0("$", format(round(total_rev / 1000000, 2), big.mark = ","), "M"),
+      "Total Revenue (2023)",
+      icon = icon("dollar-sign"),
+      color = "green"
+    )
+  })
+  
+  output$total_transactions <- renderValueBox({
+    valueBox(
+      format(nrow(transactions), big.mark = ","),
+      "Total Transactions",
+      icon = icon("receipt"),
+      color = "blue"
+    )
+  })
+  
+  output$avg_transaction <- renderValueBox({
+    avg_trans <- mean(transactions$transaction_amount)
+    valueBox(
+      paste0("$", round(avg_trans, 2)),
+      "Avg Transaction Value",
+      icon = icon("shopping-cart"),
+      color = "yellow"
+    )
+  })
+  
+  output$total_stores_box <- renderValueBox({
+    valueBox(
+      format(nrow(store_locations), big.mark = ","),
+      "Total Stores",
+      icon = icon("store"),
+      color = "red"
+    )
+  })
+  
+  output$total_employees <- renderValueBox({
+    valueBox(
+      format(nrow(employee_data), big.mark = ","),
+      "Total Employees",
+      icon = icon("users"),
+      color = "purple"
+    )
+  })
+  
+  output$avg_rating <- renderValueBox({
+    avg_rat <- mean(store_locations$google_rating)
+    valueBox(
+      paste0(round(avg_rat, 2), " / 5.0"),
+      "Avg Google Rating",
+      icon = icon("star"),
+      color = "orange"
+    )
+  })
+  
+  output$revenue_trend <- renderPlotly({
+    trend_data <- transactions %>%
+      group_by(date) %>%
+      summarise(daily_revenue = sum(transaction_amount), .groups = "drop")
+    
+    plot_ly(trend_data, x = ~date, y = ~daily_revenue,
+            type = 'scatter', mode = 'lines',
+            line = list(color = '#dd4b39', width = 2)) %>%
+      layout(xaxis = list(title = "Date"),
+             yaxis = list(title = "Daily Revenue ($)"),
+             hovermode = "x unified")
+  })
+  
+  output$top_chains <- renderPlotly({
+    chain_rev <- transactions %>%
+      group_by(chain) %>%
+      summarise(total_rev = sum(transaction_amount), .groups = "drop") %>%
+      arrange(desc(total_rev)) %>%
+      head(5)
+    
+    plot_ly(chain_rev, x = ~reorder(chain, total_rev), y = ~total_rev,
+            type = 'bar', marker = list(color = '#dd4b39')) %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Total Revenue ($)"))
+  })
+  
+  output$hourly_dist <- renderPlotly({
+    hourly_data <- transactions %>%
+      count(hour)
+    
+    plot_ly(hourly_data, x = ~hour, y = ~n, type = 'bar',
+            marker = list(color = '#3c8dbc')) %>%
+      layout(xaxis = list(title = "Hour of Day"),
+             yaxis = list(title = "Number of Transactions"))
+  })
+  
+  output$order_type_pie <- renderPlotly({
+    order_data <- transactions %>%
+      count(order_type)
+    
+    plot_ly(order_data, labels = ~order_type, values = ~n, type = 'pie') %>%
+      layout(title = "")
+  })
+  
+  # ========== TRANSACTION ANALYSIS TAB ==========
+  filtered_transactions <- reactive({
+    data <- transactions
+    
+    if(input$trans_chain != "All") {
+      data <- data %>% filter(chain == input$trans_chain)
+    }
+    if(input$trans_meal != "All") {
+      data <- data %>% filter(meal_period == input$trans_meal)
+    }
+    if(input$trans_payment != "All") {
+      data <- data %>% filter(payment_method == input$trans_payment)
+    }
+    
+    data <- data %>%
+      filter(date >= input$trans_dates[1] & date <= input$trans_dates[2])
+    
+    data
+  })
+  
+  output$trans_amount_hist <- renderPlotly({
+    plot_ly(filtered_transactions(), x = ~transaction_amount, type = "histogram",
+            marker = list(color = '#00a65a')) %>%
+      layout(xaxis = list(title = "Transaction Amount ($)"),
+             yaxis = list(title = "Frequency"))
+  })
+  
+  output$trans_dow <- renderPlotly({
+    dow_data <- filtered_transactions() %>%
+      group_by(day_of_week) %>%
+      summarise(avg_amount = mean(transaction_amount), .groups = "drop")
+    
+    plot_ly(dow_data, x = ~day_of_week, y = ~avg_amount, type = 'bar',
+            marker = list(color = '#f39c12')) %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Avg Transaction ($)"))
+  })
+  
+  output$wait_time_box <- renderPlotly({
+    plot_ly(filtered_transactions(), y = ~wait_time_minutes, color = ~order_type,
+            type = "box") %>%
+      layout(yaxis = list(title = "Wait Time (minutes)"))
+  })
+  
+  output$rating_bar <- renderPlotly({
+    rating_data <- filtered_transactions() %>%
+      count(rating)
+    
+    plot_ly(rating_data, x = ~rating, y = ~n, type = 'bar',
+            marker = list(color = '#dd4b39')) %>%
+      layout(xaxis = list(title = "Rating (stars)"),
+             yaxis = list(title = "Count"))
+  })
+  
+  # ========== STORE PERFORMANCE TAB ==========
+  output$store_comparison <- renderPlotly({
+    metric_data <- store_locations %>%
+      group_by(chain) %>%
+      summarise(avg_metric = mean(.data[[input$store_metric]]), .groups = "drop") %>%
+      arrange(desc(avg_metric)) %>%
+      head(15)
+    
+    plot_ly(metric_data, x = ~reorder(chain, avg_metric), y = ~avg_metric,
+            type = 'bar', marker = list(color = '#3c8dbc')) %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = gsub("_", " ", tools::toTitleCase(input$store_metric))))
+  })
+  
+  output$drivethu_analysis <- renderPlotly({
+    dt_data <- store_locations %>%
+      group_by(has_drive_thru) %>%
+      summarise(avg_customers = mean(avg_daily_customers), .groups = "drop") %>%
+      mutate(has_drive_thru = ifelse(has_drive_thru, "Has Drive-Thru", "No Drive-Thru"))
+    
+    plot_ly(dt_data, x = ~has_drive_thru, y = ~avg_customers, type = 'bar',
+            marker = list(color = c('#dd4b39', '#00a65a'))) %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Avg Daily Customers"))
+  })
+  
+  output$sqft_dist <- renderPlotly({
+    plot_ly(store_locations, x = ~sq_footage, type = "histogram",
+            marker = list(color = '#f39c12')) %>%
+      layout(xaxis = list(title = "Square Footage"),
+             yaxis = list(title = "Frequency"))
+  })
+  
+  output$store_growth_year <- renderPlotly({
+    growth_data <- store_locations %>%
+      count(year_opened, chain) %>%
+      filter(chain %in% c("McDonald's", "Starbucks", "Subway", "Chick-fil-A", "Taco Bell"))
+    
+    plot_ly(growth_data, x = ~year_opened, y = ~n, color = ~chain,
+            type = 'scatter', mode = 'lines+markers') %>%
+      layout(xaxis = list(title = "Year"),
+             yaxis = list(title = "Stores Opened"))
+  })
+  
+  # ========== MENU ANALYTICS TAB ==========
+  filtered_menu <- reactive({
+    data <- menu_sales
+    
+    if(input$menu_chain_filter != "All") {
+      data <- data %>% filter(chain == input$menu_chain_filter)
+    }
+    if(input$menu_category_filter != "All") {
+      data <- data %>% filter(category == input$menu_category_filter)
+    }
+    if(input$menu_city_filter != "All") {
+      data <- data %>% filter(city == input$menu_city_filter)
+    }
+    
+    data
+  })
+  
+  output$top_menu_items <- renderPlotly({
+    top_items <- filtered_menu() %>%
+      group_by(item_name, chain) %>%
+      summarise(total_revenue = sum(daily_revenue), .groups = "drop") %>%
+      arrange(desc(total_revenue)) %>%
+      head(20)
+    
+    plot_ly(top_items, x = ~reorder(item_name, total_revenue), y = ~total_revenue,
+            color = ~chain, type = 'bar') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Total Revenue ($)"),
+             barmode = 'stack')
+  })
+  
+  output$price_quantity_scatter <- renderPlotly({
+    scatter_data <- filtered_menu() %>%
+      group_by(item_name, price) %>%
+      summarise(total_qty = sum(quantity_sold), .groups = "drop")
+    
+    plot_ly(scatter_data, x = ~price, y = ~total_qty,
+            type = 'scatter', mode = 'markers',
+            text = ~item_name, marker = list(size = 8, color = '#dd4b39')) %>%
+      layout(xaxis = list(title = "Price ($)"),
+             yaxis = list(title = "Total Quantity Sold"))
+  })
+  
+  output$category_revenue <- renderPlotly({
+    cat_data <- filtered_menu() %>%
+      group_by(category) %>%
+      summarise(total_revenue = sum(daily_revenue), .groups = "drop")
+    
+    plot_ly(cat_data, labels = ~category, values = ~total_revenue, type = 'pie') %>%
+      layout(title = "")
+  })
+  
+  output$calorie_box <- renderPlotly({
+    plot_ly(filtered_menu(), y = ~calories, color = ~category, type = "box") %>%
+      layout(yaxis = list(title = "Calories"))
+  })
+  
+  # ========== EMPLOYEE INSIGHTS TAB ==========
+  output$total_emp_box <- renderValueBox({
+    valueBox(
+      format(nrow(employee_data), big.mark = ","),
+      "Total Employees",
+      icon = icon("users"),
+      color = "blue"
+    )
+  })
+  
+  output$avg_wage <- renderValueBox({
+    avg_w <- mean(employee_data$hourly_wage)
+    valueBox(
+      paste0("$", round(avg_w, 2), "/hr"),
+      "Average Hourly Wage",
+      icon = icon("money-bill"),
+      color = "green"
+    )
+  })
+  
+  output$turnover_rate <- renderValueBox({
+    # Simple estimate: employees with < 1 year experience
+    turnover <- mean(employee_data$years_experience < 1) * 100
+    valueBox(
+      paste0(round(turnover), "%"),
+      "Est. Annual Turnover",
+      icon = icon("exchange-alt"),
+      color = "red"
+    )
+  })
+  
+  output$position_dist <- renderPlotly({
+    pos_data <- employee_data %>%
+      count(position)
+    
+    plot_ly(pos_data, labels = ~position, values = ~n, type = 'pie') %>%
+      layout(title = "")
+  })
+  
+  output$wage_hist <- renderPlotly({
+    plot_ly(employee_data, x = ~hourly_wage, type = "histogram",
+            marker = list(color = '#00a65a')) %>%
+      layout(xaxis = list(title = "Hourly Wage ($)"),
+             yaxis = list(title = "Frequency"))
+  })
+  
+  output$exp_wage_scatter <- renderPlotly({
+    plot_ly(employee_data, x = ~years_experience, y = ~hourly_wage,
+            color = ~position, type = 'scatter', mode = 'markers',
+            marker = list(size = 6)) %>%
+      layout(xaxis = list(title = "Years of Experience"),
+             yaxis = list(title = "Hourly Wage ($)"))
+  })
+  
+  output$performance_dist <- renderPlotly({
+    perf_data <- employee_data %>%
+      count(performance_rating)
+    
+    plot_ly(perf_data, x = ~performance_rating, y = ~n, type = 'bar',
+            marker = list(color = '#f39c12')) %>%
+      layout(xaxis = list(title = "Performance Rating (1-5)"),
+             yaxis = list(title = "Number of Employees"))
+  })
+  
+  output$ft_pt_chain <- renderPlotly({
+    ft_data <- employee_data %>%
+      group_by(chain, is_full_time) %>%
+      summarise(count = n(), .groups = "drop") %>%
+      mutate(employment_type = ifelse(is_full_time, "Full-Time", "Part-Time")) %>%
+      group_by(chain) %>%
+      mutate(total = sum(count),
+             percentage = count / total * 100) %>%
+      filter(chain %in% c("McDonald's", "Starbucks", "Subway", "Chick-fil-A", 
+                          "Taco Bell", "Burger King", "Wendy's", "Dunkin'"))
+    
+    plot_ly(ft_data, x = ~chain, y = ~percentage, color = ~employment_type,
+            type = 'bar') %>%
+      layout(barmode = 'stack',
+             xaxis = list(title = ""),
+             yaxis = list(title = "Percentage (%)"))
+  })
+  
+  # ========== TIME PATTERNS TAB ==========
+  output$hourly_volume <- renderPlotly({
+    hourly_data <- transactions %>%
+      filter(chain %in% input$time_chains) %>%
+      group_by(hour, chain) %>%
+      summarise(count = n(), .groups = "drop")
+    
+    plot_ly(hourly_data, x = ~hour, y = ~count, color = ~chain,
+            type = 'scatter', mode = 'lines+markers') %>%
+      layout(xaxis = list(title = "Hour of Day"),
+             yaxis = list(title = "Number of Transactions"))
+  })
+  
+  output$weekend_weekday <- renderPlotly({
+    ww_data <- transactions %>%
+      group_by(is_weekend) %>%
+      summarise(total_revenue = sum(transaction_amount), .groups = "drop") %>%
+      mutate(day_type = ifelse(is_weekend, "Weekend", "Weekday"))
+    
+    plot_ly(ww_data, x = ~day_type, y = ~total_revenue, type = 'bar',
+            marker = list(color = c('#dd4b39', '#00a65a'))) %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Total Revenue ($)"))
+  })
+  
+  output$monthly_pattern <- renderPlotly({
+    monthly_data <- transactions %>%
+      group_by(month) %>%
+      summarise(avg_daily_revenue = mean(transaction_amount), .groups = "drop")
+    
+    plot_ly(monthly_data, x = ~month, y = ~avg_daily_revenue, type = 'bar',
+            marker = list(color = '#f39c12')) %>%
+      layout(xaxis = list(title = "Month"),
+             yaxis = list(title = "Avg Transaction Amount ($)"))
+  })
+  
+  output$meal_period_perf <- renderPlotly({
+    meal_data <- transactions %>%
+      group_by(meal_period, chain) %>%
+      summarise(total_revenue = sum(transaction_amount), .groups = "drop") %>%
+      filter(chain %in% c("McDonald's", "Starbucks", "Subway", "Chick-fil-A", "Taco Bell"))
+    
+    plot_ly(meal_data, x = ~meal_period, y = ~total_revenue, color = ~chain,
+            type = 'bar') %>%
+      layout(barmode = 'group',
+             xaxis = list(title = "Meal Period"),
+             yaxis = list(title = "Total Revenue ($)"))
+  })
+  
+  # ========== GEOGRAPHIC ANALYSIS TAB ==========
+  output$store_map <- renderLeaflet({
+    map_data <- store_locations
+    
+    if(input$map_chain_filter != "All") {
+      map_data <- map_data %>% filter(chain == input$map_chain_filter)
+    }
+    
+    # Sample for performance (show max 2000 points)
+    if(nrow(map_data) > 2000) {
+      map_data <- map_data %>% sample_n(2000)
+    }
+    
+    pal <- colorFactor(
+      palette = rainbow(length(unique(map_data$chain))),
+      domain = unique(map_data$chain)
+    )
+    
+    leaflet(map_data) %>%
+      addTiles() %>%
+      addCircleMarkers(
+        lng = ~lon, lat = ~lat,
+        radius = 3,
+        color = ~pal(chain),
+        fillOpacity = 0.6,
+        popup = ~paste0("<strong>", chain, "</strong><br>",
+                        "City: ", city, ", ", state, "<br>",
+                        "Rating: ", google_rating)
+      ) %>%
+      addLegend("bottomright", pal = pal, values = ~chain,
+                title = "Chain", opacity = 0.7)
+  })
+  
+  output$city_store_count <- renderPlotly({
+    city_data <- store_locations %>%
+      count(city, state) %>%
+      arrange(desc(n)) %>%
+      head(15) %>%
+      mutate(city_state = paste0(city, ", ", state))
+    
+    plot_ly(city_data, x = ~reorder(city_state, n), y = ~n, type = 'bar',
+            marker = list(color = '#3c8dbc')) %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Number of Stores"))
+  })
+  
+  output$state_revenue <- renderPlotly({
+    # Combine transactions with store locations to get state
+    state_rev <- transactions %>%
+      left_join(store_locations %>% 
+                  select(chain_loc = chain, state) %>% 
+                  distinct(), 
+                by = c("chain" = "chain_loc")) %>%
+      filter(!is.na(state)) %>%
+      group_by(state) %>%
+      summarise(total_revenue = sum(transaction_amount), .groups = "drop") %>%
+      arrange(desc(total_revenue)) %>%
+      head(15)
+    
+    plot_ly(state_rev, x = ~reorder(state, total_revenue), y = ~total_revenue,
+            type = 'bar', marker = list(color = '#00a65a')) %>%
+      layout(xaxis = list(title = "State"),
+             yaxis = list(title = "Total Revenue ($)"))
+  })
+  
+  # ========== DATA EXPLORER TAB ==========
+  selected_dataset <- reactive({
+    switch(input$dataset_choice,
+           "transactions" = transactions,
+           "stores" = store_locations,
+           "menu" = menu_sales,
+           "employees" = employee_data)
+  })
+  
+  output$data_table <- renderDT({
+    datatable(selected_dataset(),
+              options = list(
+                pageLength = 25,
+                scrollX = TRUE,
+                scrollY = "500px"
+              ),
+              filter = 'top')
+  })
+  
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste0(input$dataset_choice, "_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(selected_dataset(), file, row.names = FALSE)
+    }
+  )
+}
+
+# ============================================================================
+# RUN THE APPLICATION
+# ============================================================================
+
+
+
+shinyApp(ui = ui, server = server)
+=======
+
+```{r}
+library(tidyverse)
+
+
+
+file.info("FoodData.txt")
+
+#Reads Jacob's Food Data
+FoodData <- haven::read_xpt("FoodData.txt")
+FoodData
+
+str(FoodData)
+names(FoodData)
+nrow(FoodData)
+
+
+#Reads Gracie's fast food resautants data
+Fast_Food_Restaurants <- read_csv("Fast_Food_Restaurants_US.csv")
+Fast_Food_Restaurants
+```
+
+>>>>>>> c7faa394e5d820c4dd78a064a018d5901ea3813b
