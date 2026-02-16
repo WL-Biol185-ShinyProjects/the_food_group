@@ -1392,6 +1392,8 @@ nrow(FoodData)
 #Reads Gracie's fast food resautants data
 Fast_Food_Restaurants <- read_csv("Fast_Food_Restaurants_US.csv")
 Fast_Food_Restaurants
+
+read_csv("transactions.csv")
 ```
 
 >>>>>>> c7faa394e5d820c4dd78a064a018d5901ea3813b
