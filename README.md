@@ -1,11 +1,4 @@
-# the_food_group
-Fast food data across the US
+# Fast Food Analytics 
 
-
-Important links
-
-Fast food
-Zaxbys
-
-What is the project about and links:
-change - jacob
+# Load required libraries
+library(shiny)
