@@ -3,6 +3,7 @@ Fast food data across the US
 <<<<<<< HEAD
 Zaxbys
 Mcdonalds
+Chic fil a
 =======
 
 What is the project about and links:
