@@ -1,0 +1,1170 @@
+---
+title: "Jacob"
+output: html_document
+---
+
+```{r}
+# app_real_data_enhanced.R - Fast Food Analytics Dashboard with REAL DATA
+# Data Sources: 
+#   1. Datafiniti Business Database (10,000 Fast Food Restaurants)
+#   2. McDonald's Menu Nutrition Facts
+
+# Load required libraries
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(plotly)
+library(DT)
+library(leaflet)
+library(lubridate)
+library(scales)
+
+# ============================================================================
+# LOAD REAL DATA
+# ============================================================================
+
+cat("Loading real fast food data...\n")
+
+# Load the Datafiniti restaurant locations dataset
+restaurants <- read_csv("Datafiniti_Fast_Food_Restaurants.csv", 
+                        show_col_types = FALSE)
+
+# Load the McDonald's menu nutrition dataset
+mcdonalds_menu <- read_csv("menu.csv", 
+                           show_col_types = FALSE)
+
+cat("Data loaded successfully!\n")
+cat("Restaurant locations:", nrow(restaurants), "\n")
+cat("McDonald's menu items:", nrow(mcdonalds_menu), "\n\n")
+
+# Clean and prepare restaurant data
+restaurants <- restaurants %>%
+  distinct(name, address, city, province, .keep_all = TRUE) %>%
+  mutate(
+    chain = case_when(
+      str_detect(name, "McDonald") ~ "McDonald's",
+      str_detect(name, "Taco Bell") ~ "Taco Bell",
+      str_detect(name, "Burger King") ~ "Burger King",
+      str_detect(name, "Subway") ~ "Subway",
+      str_detect(name, "Arby") ~ "Arby's",
+      str_detect(name, "Wendy") ~ "Wendy's",
+      str_detect(name, "Jack in the Box") ~ "Jack in the Box",
+      str_detect(name, "Pizza Hut") ~ "Pizza Hut",
+      str_detect(name, "Dairy Queen") ~ "Dairy Queen",
+      str_detect(name, "Domino") ~ "Domino's Pizza",
+      str_detect(name, "Chick-fil-A") ~ "Chick-fil-A",
+      str_detect(name, "KFC") ~ "KFC",
+      str_detect(name, "SONIC") ~ "Sonic Drive-In",
+      str_detect(name, "Jimmy John") ~ "Jimmy John's",
+      str_detect(name, "Carl's Jr") ~ "Carl's Jr.",
+      str_detect(name, "Hardee") ~ "Hardee's",
+      str_detect(name, "Krystal") ~ "Krystal",
+      str_detect(name, "Panera") ~ "Panera Bread",
+      str_detect(name, "Culver") ~ "Culver's",
+      str_detect(name, "Dunkin") ~ "Dunkin'",
+      str_detect(name, "Popeyes") ~ "Popeyes",
+      str_detect(name, "Five Guys") ~ "Five Guys",
+      str_detect(name, "Chipotle") ~ "Chipotle",
+      str_detect(name, "Starbucks") ~ "Starbucks",
+      TRUE ~ name
+    ),
+    main_category = case_when(
+      str_detect(categories, "Burger") ~ "Burgers",
+      str_detect(categories, "Mexican") ~ "Mexican",
+      str_detect(categories, "Pizza") ~ "Pizza",
+      str_detect(categories, "Chicken") ~ "Chicken",
+      str_detect(categories, "Sandwich") ~ "Sandwiches",
+      str_detect(categories, "Ice Cream") ~ "Desserts",
+      TRUE ~ "General Fast Food"
+    ),
+    state_name = case_when(
+      province == "CA" ~ "California",
+      province == "TX" ~ "Texas",
+      province == "FL" ~ "Florida",
+      province == "NY" ~ "New York",
+      province == "PA" ~ "Pennsylvania",
+      province == "IL" ~ "Illinois",
+      province == "OH" ~ "Ohio",
+      province == "GA" ~ "Georgia",
+      province == "NC" ~ "North Carolina",
+      province == "MI" ~ "Michigan",
+      province == "AZ" ~ "Arizona",
+      province == "TN" ~ "Tennessee",
+      province == "IN" ~ "Indiana",
+      province == "VA" ~ "Virginia",
+      province == "WA" ~ "Washington",
+      province == "MA" ~ "Massachusetts",
+      province == "LA" ~ "Louisiana",
+      province == "MN" ~ "Minnesota",
+      province == "WI" ~ "Wisconsin",
+      province == "SC" ~ "South Carolina",
+      TRUE ~ province
+    )
+  )
+
+# Get top chains
+top_chains <- restaurants %>%
+  count(chain, sort = TRUE) %>%
+  filter(n >= 50) %>%
+  pull(chain)
+
+# Clean McDonald's menu data
+mcdonalds_menu <- mcdonalds_menu %>%
+  rename(
+    category = Category,
+    item = Item,
+    serving_size = `Serving Size`,
+    calories = Calories,
+    calories_from_fat = `Calories from Fat`,
+    total_fat = `Total Fat`,
+    saturated_fat = `Saturated Fat`,
+    trans_fat = `Trans Fat`,
+    cholesterol = Cholesterol,
+    sodium = Sodium,
+    carbohydrates = Carbohydrates,
+    dietary_fiber = `Dietary Fiber`,
+    sugars = Sugars,
+    protein = Protein
+  ) %>%
+  select(category, item, serving_size, calories, calories_from_fat, 
+         total_fat, saturated_fat, trans_fat, cholesterol, sodium, 
+         carbohydrates, dietary_fiber, sugars, protein)
+
+cat("Data processing complete!\n")
+
+# ============================================================================
+# UI DEFINITION
+# ============================================================================
+
+ui <- dashboardPage(
+  skin = "red",
+  
+  dashboardHeader(title = "Fast Food Analytics - Real Data"),
+  
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
+      menuItem("Geographic Analysis", tabName = "geography", icon = icon("map")),
+      menuItem("Chain Analysis", tabName = "chains", icon = icon("store")),
+      menuItem("State Analysis", tabName = "states", icon = icon("map-marked-alt")),
+      menuItem("City Analysis", tabName = "cities", icon = icon("city")),
+      menuItem("Interactive Map", tabName = "map", icon = icon("globe")),
+      menuItem("McDonald's Nutrition", tabName = "nutrition", icon = icon("hamburger")),
+      menuItem("Menu Analytics", tabName = "menu", icon = icon("utensils")),
+      menuItem("Data Explorer", tabName = "data", icon = icon("table")),
+      menuItem("Data Sources", tabName = "sources", icon = icon("info-circle"))
+    )
+  ),
+  
+  dashboardBody(
+    tags$head(
+      tags$style(HTML("
+        .content-wrapper { background-color: #ecf0f5; }
+        .box { border-top: 3px solid #dd4b39; }
+        .info-box { min-height: 80px; }
+        .small-box { border-radius: 5px; }
+      "))
+    ),
+    
+    tabItems(
+      # ========== OVERVIEW TAB ==========
+      tabItem(
+        tabName = "overview",
+        h2("Fast Food Industry Overview - Real Data Analysis"),
+        
+        fluidRow(
+          box(
+            title = "About This Dashboard",
+            status = "info",
+            solidHeader = TRUE,
+            width = 12,
+            icon = icon("database"),
+            h4("Two Real Datasets Combined"),
+            tags$hr(),
+            h5(icon("map-marker-alt"), strong(" Dataset 1: Restaurant Locations")),
+            p(strong("Source:"), "Datafiniti Business Database"),
+            p(strong("Size:"), format(nrow(restaurants), big.mark = ","), "unique fast food restaurant locations"),
+            p(strong("Coverage:"), length(unique(restaurants$province)), "states,", 
+              length(unique(restaurants$city)), "cities"),
+            tags$hr(),
+            h5(icon("hamburger"), strong(" Dataset 2: McDonald's Menu Nutrition")),
+            p(strong("Source:"), "McDonald's Official Nutrition Facts"),
+            p(strong("Size:"), nrow(mcdonalds_menu), "menu items across", 
+              length(unique(mcdonalds_menu$category)), "categories"),
+            p(strong("Data:"), "Complete nutritional information including calories, fat, protein, carbs, sodium"),
+            tags$hr(),
+            p(icon("info-circle"), em("All visualizations are based on real, publicly available data from Kaggle."))
+          )
+        ),
+        
+        fluidRow(
+          valueBoxOutput("total_locations"),
+          valueBoxOutput("total_chains"),
+          valueBoxOutput("total_states")
+        ),
+        
+        fluidRow(
+          valueBoxOutput("mcdonalds_count"),
+          valueBoxOutput("menu_items_count"),
+          valueBoxOutput("avg_calories")
+        ),
+        
+        fluidRow(
+          box(
+            title = "Top 10 Fast Food Chains by Location Count",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("top_10_chains", height = 350)
+          ),
+          box(
+            title = "McDonald's Menu - Category Distribution",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("menu_category_pie", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Geographic Distribution - Top 15 States",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("state_distribution", height = 400)
+          )
+        )
+      ),
+      
+      # ========== GEOGRAPHIC ANALYSIS TAB ==========
+      tabItem(
+        tabName = "geography",
+        h2("Geographic Distribution Analysis"),
+        
+        fluidRow(
+          box(
+            title = "State-Level Analysis",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("states_map_chart", height = 500)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Regional Distribution",
+            status = "info",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("regional_dist", height = 350)
+          ),
+          box(
+            title = "Top 20 Cities by Restaurant Count",
+            status = "info",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("top_cities_chart", height = 350)
+          )
+        )
+      ),
+      
+      # ========== CHAIN ANALYSIS TAB ==========
+      tabItem(
+        tabName = "chains",
+        h2("Chain-by-Chain Analysis"),
+        
+        fluidRow(
+          box(
+            title = "Select Chains to Compare",
+            status = "warning",
+            width = 12,
+            checkboxGroupInput("selected_chains", "Choose chains:",
+                               choices = top_chains[1:15],
+                               selected = top_chains[1:5],
+                               inline = TRUE)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Location Count by Selected Chains",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("chain_comparison", height = 400)
+          ),
+          box(
+            title = "Geographic Presence by State",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("chain_state_presence", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Top 10 Cities for Selected Chains",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("chain_city_analysis", height = 400)
+          )
+        )
+      ),
+      
+      # ========== STATE ANALYSIS TAB ==========
+      tabItem(
+        tabName = "states",
+        h2("State-Level Deep Dive"),
+        
+        fluidRow(
+          box(
+            title = "Select State",
+            status = "info",
+            width = 12,
+            selectInput("selected_state", "Choose a state:",
+                        choices = sort(unique(restaurants$state_name)),
+                        selected = "California")
+          )
+        ),
+        
+        fluidRow(
+          valueBoxOutput("state_total_restaurants"),
+          valueBoxOutput("state_total_cities"),
+          valueBoxOutput("state_top_chain")
+        ),
+        
+        fluidRow(
+          box(
+            title = "Chain Distribution in Selected State",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("state_chain_breakdown", height = 400)
+          ),
+          box(
+            title = "Top Cities in Selected State",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("state_city_breakdown", height = 400)
+          )
+        )
+      ),
+      
+      # ========== CITY ANALYSIS TAB ==========
+      tabItem(
+        tabName = "cities",
+        h2("City-Level Analysis"),
+        
+        fluidRow(
+          box(
+            title = "Select City",
+            status = "warning",
+            width = 12,
+            selectInput("selected_city", "Choose a city:",
+                        choices = sort(unique(restaurants$city)),
+                        selected = "Houston")
+          )
+        ),
+        
+        fluidRow(
+          valueBoxOutput("city_total_restaurants"),
+          valueBoxOutput("city_total_chains"),
+          valueBoxOutput("city_top_chain")
+        ),
+        
+        fluidRow(
+          box(
+            title = "Restaurant Chains in Selected City",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("city_chain_distribution", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "All Locations in Selected City",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            DTOutput("city_restaurants_table")
+          )
+        )
+      ),
+      
+      # ========== INTERACTIVE MAP TAB ==========
+      tabItem(
+        tabName = "map",
+        h2("Interactive Restaurant Map"),
+        
+        fluidRow(
+          box(
+            title = "Map Filters",
+            status = "primary",
+            width = 12,
+            column(4, selectInput("map_chain_filter", "Filter by Chain:",
+                                  choices = c("All Chains", sort(unique(restaurants$chain))),
+                                  selected = "All Chains")),
+            column(4, selectInput("map_state_filter", "Filter by State:",
+                                  choices = c("All States", sort(unique(restaurants$state_name))),
+                                  selected = "All States")),
+            column(4, selectInput("map_category_filter", "Filter by Category:",
+                                  choices = c("All Categories", sort(unique(restaurants$main_category))),
+                                  selected = "All Categories"))
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Restaurant Locations Map",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 12,
+            leafletOutput("interactive_map", height = 600)
+          )
+        )
+      ),
+      
+      # ========== MCDONALD'S NUTRITION TAB ==========
+      tabItem(
+        tabName = "nutrition",
+        h2("McDonald's Menu - Nutritional Analysis"),
+        
+        fluidRow(
+          box(
+            title = "Filter by Category",
+            status = "warning",
+            width = 12,
+            selectInput("nutrition_category", "Select Menu Category:",
+                        choices = c("All Categories", sort(unique(mcdonalds_menu$category))),
+                        selected = "All Categories")
+          )
+        ),
+        
+        fluidRow(
+          valueBoxOutput("filtered_items_count"),
+          valueBoxOutput("avg_calories_filtered"),
+          valueBoxOutput("avg_protein")
+        ),
+        
+        fluidRow(
+          box(
+            title = "Calorie Distribution",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("calorie_histogram", height = 350)
+          ),
+          box(
+            title = "Fat vs Protein Content",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("fat_protein_scatter", height = 350)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Average Nutritional Values by Category",
+            status = "success",
+            solidHeader = TRUE,
+            width = 12,
+            plotlyOutput("nutrition_by_category", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Sodium Content Analysis",
+            status = "info",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("sodium_box", height = 350)
+          ),
+          box(
+            title = "Carbohydrates Distribution",
+            status = "info",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("carbs_histogram", height = 350)
+          )
+        )
+      ),
+      
+      # ========== MENU ANALYTICS TAB ==========
+      tabItem(
+        tabName = "menu",
+        h2("McDonald's Menu - Item Analysis"),
+        
+        fluidRow(
+          box(
+            title = "Top 15 Highest Calorie Items",
+            status = "danger",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("top_calorie_items", height = 400)
+          ),
+          box(
+            title = "Top 15 Highest Protein Items",
+            status = "success",
+            solidHeader = TRUE,
+            width = 6,
+            plotlyOutput("top_protein_items", height = 400)
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Complete Menu Nutrition Data",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            DTOutput("menu_data_table")
+          )
+        )
+      ),
+      
+      # ========== DATA EXPLORER TAB ==========
+      tabItem(
+        tabName = "data",
+        h2("Raw Data Explorer"),
+        
+        fluidRow(
+          box(
+            title = "Select Dataset",
+            status = "primary",
+            width = 12,
+            radioButtons("dataset_choice", "Choose Dataset to Explore:",
+                         choices = c("Restaurant Locations" = "locations",
+                                     "McDonald's Menu Nutrition" = "menu"),
+                         selected = "locations",
+                         inline = TRUE),
+            downloadButton("download_data", "Download Selected Dataset (CSV)", class = "btn-success")
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Dataset Viewer",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            DTOutput("data_table", height = 600)
+          )
+        )
+      ),
+      
+      # ========== DATA SOURCES TAB ==========
+      tabItem(
+        tabName = "sources",
+        h2("Data Sources & Methodology"),
+        
+        fluidRow(
+          box(
+            title = "Dataset 1: Restaurant Locations",
+            status = "info",
+            solidHeader = TRUE,
+            width = 12,
+            icon = icon("map-marker-alt"),
+            h3("Datafiniti Business Database"),
+            p(strong("Dataset Name:"), "Fast Food Restaurants Across America"),
+            p(strong("Publisher:"), "Datafiniti"),
+            p(strong("Platform:"), "Kaggle"),
+            p(strong("URL:"), tags$a(href = "https://www.kaggle.com/datasets/datafiniti/fast-food-restaurants",
+                                     "https://www.kaggle.com/datasets/datafiniti/fast-food-restaurants",
+                                     target = "_blank")),
+            p(strong("License:"), "CC0: Public Domain"),
+            p(strong("Last Updated:"), "June 26, 2018"),
+            p(strong("Records:"), format(nrow(restaurants), big.mark = ","), "restaurant locations"),
+            tags$hr(),
+            h4("What's Included"),
+            tags$ul(
+              tags$li("Restaurant names and standardized chain brands"),
+              tags$li("Complete addresses (street, city, state, postal code)"),
+              tags$li("Geographic coordinates (latitude and longitude)"),
+              tags$li("Business categories and classifications"),
+              tags$li("Website URLs and source references")
+            )
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Dataset 2: McDonald's Menu Nutrition",
+            status = "success",
+            solidHeader = TRUE,
+            width = 12,
+            icon = icon("hamburger"),
+            h3("McDonald's Nutrition Facts"),
+            p(strong("Dataset Name:"), "McDonald's Menu Nutrition Facts"),
+            p(strong("Publisher:"), "McDonald's Corporation / Kaggle Community"),
+            p(strong("Platform:"), "Kaggle"),
+            p(strong("URL:"), tags$a(href = "https://www.kaggle.com/datasets/mcdonalds/nutrition-facts",
+                                     "https://www.kaggle.com/datasets/mcdonalds/nutrition-facts",
+                                     target = "_blank")),
+            p(strong("License:"), "CC BY-SA 4.0"),
+            p(strong("Records:"), nrow(mcdonalds_menu), "menu items"),
+            tags$hr(),
+            h4("What's Included"),
+            tags$ul(
+              tags$li("Menu item names and categories (Breakfast, Beef & Pork, Chicken & Fish, etc.)"),
+              tags$li("Serving sizes"),
+              tags$li("Complete calorie information (total and from fat)"),
+              tags$li("Macronutrients: total fat, saturated fat, trans fat, cholesterol, carbohydrates, protein"),
+              tags$li("Micronutrients: sodium, dietary fiber, sugars"),
+              tags$li("Vitamin and mineral content (% daily values)")
+            )
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Data Processing & Methodology",
+            status = "warning",
+            solidHeader = TRUE,
+            width = 12,
+            h4("Data Cleaning Steps"),
+            h5("Restaurant Locations:"),
+            tags$ol(
+              tags$li(strong("Duplicate Removal:"), "Restaurants appearing multiple times were deduplicated by name and address"),
+              tags$li(strong("Chain Standardization:"), "Names standardized to consistent brands (e.g., 'McDonald's Restaurant' → 'McDonald's')"),
+              tags$li(strong("Category Classification:"), "Classified into main categories (Burgers, Mexican, Pizza, etc.)"),
+              tags$li(strong("Geographic Enhancement:"), "State abbreviations expanded to full names")
+            ),
+            h5("Menu Nutrition:"),
+            tags$ol(
+              tags$li(strong("Column Renaming:"), "Simplified column names for easier analysis"),
+              tags$li(strong("Data Validation:"), "Verified no missing values"),
+              tags$li(strong("Category Standardization:"), "Maintained original McDonald's categories")
+            ),
+            tags$hr(),
+            h4("Analysis Scope"),
+            p("This dashboard combines geographic distribution data with detailed nutritional analysis. 
+              The restaurant data provides market presence insights, while the McDonald's menu data enables 
+              detailed nutritional analysis of one of America's most popular fast food chains.")
+          )
+        ),
+        
+        fluidRow(
+          box(
+            title = "Citations",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            h4("How to Cite These Datasets"),
+            h5("Restaurant Locations (APA Format):"),
+            p("Datafiniti. (2018). Fast Food Restaurants Across America [Data set]. Kaggle. 
+              https://www.kaggle.com/datasets/datafiniti/fast-food-restaurants"),
+            tags$hr(),
+            h5("McDonald's Nutrition (APA Format):"),
+            p("McDonald's Corporation. (2017). McDonald's Menu Nutrition Facts [Data set]. Kaggle. 
+              https://www.kaggle.com/datasets/mcdonalds/nutrition-facts"),
+            tags$hr(),
+            h4("Combined Citation Example:"),
+            p("This analysis uses two publicly available datasets: restaurant location data from 
+              Datafiniti's Business Database (Datafiniti, 2018) and nutritional information from 
+              McDonald's official menu data (McDonald's Corporation, 2017), both accessed via Kaggle.")
+          )
+        )
+      )
+    )
+  )
+)
+
+# ============================================================================
+# SERVER LOGIC
+# ============================================================================
+
+server <- function(input, output, session) {
+  
+  # ========== OVERVIEW TAB ==========
+  output$total_locations <- renderValueBox({
+    valueBox(
+      format(nrow(restaurants), big.mark = ","),
+      "Restaurant Locations",
+      icon = icon("map-marker-alt"),
+      color = "red"
+    )
+  })
+  
+  output$total_chains <- renderValueBox({
+    valueBox(
+      length(unique(restaurants$chain)),
+      "Unique Chains",
+      icon = icon("store"),
+      color = "blue"
+    )
+  })
+  
+  output$total_states <- renderValueBox({
+    valueBox(
+      length(unique(restaurants$province)),
+      "States Covered",
+      icon = icon("flag-usa"),
+      color = "green"
+    )
+  })
+  
+  output$mcdonalds_count <- renderValueBox({
+    count <- sum(restaurants$chain == "McDonald's")
+    valueBox(
+      format(count, big.mark = ","),
+      "McDonald's Locations",
+      icon = icon("hamburger"),
+      color = "yellow"
+    )
+  })
+  
+  output$menu_items_count <- renderValueBox({
+    valueBox(
+      nrow(mcdonalds_menu),
+      "Menu Items Analyzed",
+      icon = icon("utensils"),
+      color = "purple"
+    )
+  })
+  
+  output$avg_calories <- renderValueBox({
+    avg_cal <- round(mean(mcdonalds_menu$calories, na.rm = TRUE))
+    valueBox(
+      format(avg_cal, big.mark = ","),
+      "Avg Calories per Item",
+      icon = icon("fire"),
+      color = "orange"
+    )
+  })
+  
+  output$top_10_chains <- renderPlotly({
+    data <- restaurants %>%
+      count(chain, sort = TRUE) %>%
+      head(10)
+    
+    plot_ly(data, x = ~n, y = ~reorder(chain, n), type = 'bar',
+            marker = list(color = '#dd4b39'),
+            text = ~n, textposition = 'outside') %>%
+      layout(xaxis = list(title = "Number of Locations"),
+             yaxis = list(title = ""),
+             margin = list(l = 150))
+  })
+  
+  output$menu_category_pie <- renderPlotly({
+    data <- mcdonalds_menu %>%
+      count(category)
+    
+    plot_ly(data, labels = ~category, values = ~n, type = 'pie') %>%
+      layout(showlegend = TRUE)
+  })
+  
+  output$state_distribution <- renderPlotly({
+    data <- restaurants %>%
+      count(state_name, sort = TRUE) %>%
+      head(15)
+    
+    plot_ly(data, x = ~reorder(state_name, n), y = ~n, type = 'bar',
+            marker = list(color = '#3c8dbc'),
+            text = ~n, textposition = 'outside') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Number of Restaurants"))
+  })
+  
+  # ========== GEOGRAPHIC ANALYSIS TAB ==========
+  output$states_map_chart <- renderPlotly({
+    data <- restaurants %>%
+      count(province, state_name, sort = TRUE)
+    
+    plot_ly(data, x = ~reorder(province, n), y = ~n, type = 'bar',
+            marker = list(color = ~n, colorscale = 'Reds'),
+            text = ~paste(state_name, "<br>", n, " restaurants"),
+            hoverinfo = 'text') %>%
+      layout(xaxis = list(title = "State"),
+             yaxis = list(title = "Number of Restaurants"),
+             showlegend = FALSE)
+  })
+  
+  output$regional_dist <- renderPlotly({
+    data <- restaurants %>%
+      mutate(region = case_when(
+        province %in% c("CA", "OR", "WA", "NV", "AZ", "UT", "ID", "MT", "WY", "CO", "NM") ~ "West",
+        province %in% c("TX", "OK", "AR", "LA", "MS", "AL", "TN", "KY") ~ "South",
+        province %in% c("FL", "GA", "SC", "NC", "VA", "WV", "MD", "DE") ~ "Southeast",
+        province %in% c("IL", "IN", "MI", "OH", "WI", "MN", "IA", "MO", "ND", "SD", "NE", "KS") ~ "Midwest",
+        province %in% c("NY", "PA", "NJ", "CT", "RI", "MA", "VT", "NH", "ME") ~ "Northeast",
+        TRUE ~ "Other"
+      )) %>%
+      count(region, sort = TRUE)
+    
+    plot_ly(data, labels = ~region, values = ~n, type = 'pie') %>%
+      layout(title = "")
+  })
+  
+  output$top_cities_chart <- renderPlotly({
+    data <- restaurants %>%
+      count(city, province, sort = TRUE) %>%
+      head(20) %>%
+      mutate(city_state = paste0(city, ", ", province))
+    
+    plot_ly(data, x = ~n, y = ~reorder(city_state, n), type = 'bar',
+            marker = list(color = '#00a65a'),
+            text = ~n, textposition = 'outside') %>%
+      layout(xaxis = list(title = "Number of Restaurants"),
+             yaxis = list(title = ""),
+             margin = list(l = 150))
+  })
+  
+  # ========== CHAIN ANALYSIS TAB ==========
+  output$chain_comparison <- renderPlotly({
+    validate(
+      need(length(input$selected_chains) > 0, "Please select at least one chain")
+    )
+    
+    data <- restaurants %>%
+      filter(chain %in% input$selected_chains) %>%
+      count(chain, sort = TRUE)
+    
+    plot_ly(data, x = ~reorder(chain, n), y = ~n, type = 'bar',
+            marker = list(color = '#dd4b39'),
+            text = ~n, textposition = 'outside') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Number of Locations"))
+  })
+  
+  output$chain_state_presence <- renderPlotly({
+    validate(
+      need(length(input$selected_chains) > 0, "Please select at least one chain")
+    )
+    
+    data <- restaurants %>%
+      filter(chain %in% input$selected_chains) %>%
+      count(chain, province) %>%
+      group_by(chain) %>%
+      summarise(states_present = n(), .groups = "drop")
+    
+    plot_ly(data, x = ~reorder(chain, states_present), y = ~states_present, type = 'bar',
+            marker = list(color = '#f39c12'),
+            text = ~states_present, textposition = 'outside') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Number of States"))
+  })
+  
+  output$chain_city_analysis <- renderPlotly({
+    validate(
+      need(length(input$selected_chains) > 0, "Please select at least one chain")
+    )
+    
+    data <- restaurants %>%
+      filter(chain %in% input$selected_chains) %>%
+      count(city, chain, sort = TRUE) %>%
+      group_by(city) %>%
+      filter(sum(n) >= 3) %>%
+      ungroup() %>%
+      arrange(desc(n)) %>%
+      head(30)
+    
+    plot_ly(data, x = ~reorder(city, n), y = ~n, color = ~chain, type = 'bar') %>%
+      layout(xaxis = list(title = "City"),
+             yaxis = list(title = "Number of Locations"),
+             barmode = 'stack')
+  })
+  
+  # ========== STATE ANALYSIS TAB ==========
+  state_data <- reactive({
+    restaurants %>% filter(state_name == input$selected_state)
+  })
+  
+  output$state_total_restaurants <- renderValueBox({
+    valueBox(
+      format(nrow(state_data()), big.mark = ","),
+      paste("Restaurants in", input$selected_state),
+      icon = icon("store"),
+      color = "blue"
+    )
+  })
+  
+  output$state_total_cities <- renderValueBox({
+    valueBox(
+      length(unique(state_data()$city)),
+      "Cities with Restaurants",
+      icon = icon("city"),
+      color = "green"
+    )
+  })
+  
+  output$state_top_chain <- renderValueBox({
+    top <- state_data() %>% count(chain, sort = TRUE) %>% slice(1)
+    valueBox(
+      top$chain,
+      paste("Top Chain (", top$n, ")", sep = ""),
+      icon = icon("crown"),
+      color = "yellow"
+    )
+  })
+  
+  output$state_chain_breakdown <- renderPlotly({
+    data <- state_data() %>%
+      count(chain, sort = TRUE) %>%
+      head(15)
+    
+    plot_ly(data, x = ~reorder(chain, n), y = ~n, type = 'bar',
+            marker = list(color = '#00a65a'),
+            text = ~n, textposition = 'outside') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Number of Locations"))
+  })
+  
+  output$state_city_breakdown <- renderPlotly({
+    data <- state_data() %>%
+      count(city, sort = TRUE) %>%
+      head(15)
+    
+    plot_ly(data, x = ~reorder(city, n), y = ~n, type = 'bar',
+            marker = list(color = '#3c8dbc'),
+            text = ~n, textposition = 'outside') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Number of Restaurants"))
+  })
+  
+  # ========== CITY ANALYSIS TAB ==========
+  city_data <- reactive({
+    restaurants %>% filter(city == input$selected_city)
+  })
+  
+  output$city_total_restaurants <- renderValueBox({
+    valueBox(
+      nrow(city_data()),
+      paste("Restaurants in", input$selected_city),
+      icon = icon("map-marker-alt"),
+      color = "red"
+    )
+  })
+  
+  output$city_total_chains <- renderValueBox({
+    valueBox(
+      length(unique(city_data()$chain)),
+      "Different Chains",
+      icon = icon("store"),
+      color = "blue"
+    )
+  })
+  
+  output$city_top_chain <- renderValueBox({
+    top <- city_data() %>% count(chain, sort = TRUE) %>% slice(1)
+    valueBox(
+      top$chain,
+      paste("Most Common (", top$n, ")", sep = ""),
+      icon = icon("crown"),
+      color = "yellow"
+    )
+  })
+  
+  output$city_chain_distribution <- renderPlotly({
+    data <- city_data() %>%
+      count(chain, sort = TRUE)
+    
+    plot_ly(data, labels = ~chain, values = ~n, type = 'pie') %>%
+      layout(showlegend = TRUE)
+  })
+  
+  output$city_restaurants_table <- renderDT({
+    city_data() %>%
+      select(chain, name, address, postalCode, main_category) %>%
+      datatable(options = list(pageLength = 25, scrollX = TRUE))
+  })
+  
+  # ========== INTERACTIVE MAP TAB ==========
+  map_data <- reactive({
+    data <- restaurants
+    
+    if(input$map_chain_filter != "All Chains") {
+      data <- data %>% filter(chain == input$map_chain_filter)
+    }
+    if(input$map_state_filter != "All States") {
+      data <- data %>% filter(state_name == input$map_state_filter)
+    }
+    if(input$map_category_filter != "All Categories") {
+      data <- data %>% filter(main_category == input$map_category_filter)
+    }
+    
+    if(nrow(data) > 1000) {
+      data <- data %>% sample_n(1000)
+    }
+    
+    data
+  })
+  
+  output$interactive_map <- renderLeaflet({
+    leaflet(map_data()) %>%
+      addTiles() %>%
+      addMarkers(
+        lng = ~longitude,
+        lat = ~latitude,
+        clusterOptions = markerClusterOptions(),
+        popup = ~paste0("<strong>", chain, "</strong><br>", name, "<br>",
+                        address, "<br>", city, ", ", province, " ", postalCode)
+      )
+  })
+  
+  # ========== MCDONALD'S NUTRITION TAB ==========
+  nutrition_data <- reactive({
+    if(input$nutrition_category == "All Categories") {
+      mcdonalds_menu
+    } else {
+      mcdonalds_menu %>% filter(category == input$nutrition_category)
+    }
+  })
+  
+  output$filtered_items_count <- renderValueBox({
+    valueBox(
+      nrow(nutrition_data()),
+      "Menu Items",
+      icon = icon("list"),
+      color = "blue"
+    )
+  })
+  
+  output$avg_calories_filtered <- renderValueBox({
+    avg <- round(mean(nutrition_data()$calories, na.rm = TRUE))
+    valueBox(
+      format(avg, big.mark = ","),
+      "Avg Calories",
+      icon = icon("fire"),
+      color = "red"
+    )
+  })
+  
+  output$avg_protein <- renderValueBox({
+    avg <- round(mean(nutrition_data()$protein, na.rm = TRUE), 1)
+    valueBox(
+      paste0(avg, "g"),
+      "Avg Protein",
+      icon = icon("dumbbell"),
+      color = "green"
+    )
+  })
+  
+  output$calorie_histogram <- renderPlotly({
+    plot_ly(nutrition_data(), x = ~calories, type = "histogram",
+            marker = list(color = '#dd4b39')) %>%
+      layout(xaxis = list(title = "Calories"),
+             yaxis = list(title = "Number of Items"))
+  })
+  
+  output$fat_protein_scatter <- renderPlotly({
+    plot_ly(nutrition_data(), x = ~total_fat, y = ~protein,
+            type = 'scatter', mode = 'markers',
+            text = ~item,
+            marker = list(size = 10, color = '#3c8dbc')) %>%
+      layout(xaxis = list(title = "Total Fat (g)"),
+             yaxis = list(title = "Protein (g)"))
+  })
+  
+  output$nutrition_by_category <- renderPlotly({
+    data <- mcdonalds_menu %>%
+      group_by(category) %>%
+      summarise(
+        avg_calories = mean(calories, na.rm = TRUE),
+        avg_fat = mean(total_fat, na.rm = TRUE),
+        avg_carbs = mean(carbohydrates, na.rm = TRUE),
+        avg_protein = mean(protein, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      pivot_longer(cols = starts_with("avg_"), names_to = "nutrient", values_to = "value") %>%
+      mutate(nutrient = case_when(
+        nutrient == "avg_calories" ~ "Calories",
+        nutrient == "avg_fat" ~ "Fat (g)",
+        nutrient == "avg_carbs" ~ "Carbs (g)",
+        nutrient == "avg_protein" ~ "Protein (g)"
+      ))
+    
+    plot_ly(data, x = ~category, y = ~value, color = ~nutrient, type = 'bar') %>%
+      layout(xaxis = list(title = ""),
+             yaxis = list(title = "Average Value"),
+             barmode = 'group')
+  })
+  
+  output$sodium_box <- renderPlotly({
+    plot_ly(nutrition_data(), y = ~sodium, color = ~category, type = "box") %>%
+      layout(yaxis = list(title = "Sodium (mg)"),
+             showlegend = FALSE)
+  })
+  
+  output$carbs_histogram <- renderPlotly({
+    plot_ly(nutrition_data(), x = ~carbohydrates, type = "histogram",
+            marker = list(color = '#f39c12')) %>%
+      layout(xaxis = list(title = "Carbohydrates (g)"),
+             yaxis = list(title = "Number of Items"))
+  })
+  
+  # ========== MENU ANALYTICS TAB ==========
+  output$top_calorie_items <- renderPlotly({
+    data <- mcdonalds_menu %>%
+      arrange(desc(calories)) %>%
+      head(15)
+    
+    plot_ly(data, x = ~calories, y = ~reorder(item, calories), type = 'bar',
+            marker = list(color = '#dd4b39'),
+            text = ~calories, textposition = 'outside') %>%
+      layout(xaxis = list(title = "Calories"),
+             yaxis = list(title = ""),
+             margin = list(l = 250))
+  })
+  
+  output$top_protein_items <- renderPlotly({
+    data <- mcdonalds_menu %>%
+      arrange(desc(protein)) %>%
+      head(15)
+    
+    plot_ly(data, x = ~protein, y = ~reorder(item, protein), type = 'bar',
+            marker = list(color = '#00a65a'),
+            text = ~protein, textposition = 'outside') %>%
+      layout(xaxis = list(title = "Protein (g)"),
+             yaxis = list(title = ""),
+             margin = list(l = 250))
+  })
+  
+  output$menu_data_table <- renderDT({
+    mcdonalds_menu %>%
+      datatable(options = list(pageLength = 25, scrollX = TRUE),
+                filter = 'top')
+  })
+  
+  # ========== DATA EXPLORER TAB ==========
+  selected_dataset <- reactive({
+    if(input$dataset_choice == "locations") {
+      restaurants %>%
+        select(chain, name, address, city, province, postalCode, 
+               main_category, latitude, longitude)
+    } else {
+      mcdonalds_menu
+    }
+  })
+  
+  output$data_table <- renderDT({
+    datatable(selected_dataset(),
+              options = list(pageLength = 25, scrollX = TRUE, scrollY = "500px"),
+              filter = 'top')
+  })
+  
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste0(input$dataset_choice, "_", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(selected_dataset(), file, row.names = FALSE)
+    }
+  )
+}
+
+# ============================================================================
+# RUN THE APPLICATION
+# ============================================================================
+
+shinyApp(ui = ui, server = server)
+```
+
