@@ -26,4 +26,13 @@ Graphs
   Transactions over time of year
   Transactions per restaurant
   Transactions vs BMI/Obesity type
+  Most popular fast food
   
+PAGE 4
+Graphs on
+  Poverty vs Fast food
+  Poverty vs BMI
+  Do people eat more fast food because they are impoverished due to ease of access?
+  
+PAGE 4
+Access Raw Data / links to where data was recieved
