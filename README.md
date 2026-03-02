@@ -1,11 +1,34 @@
-# the_food_group
-Fast food data across the US
+# Fast Food Analytics 
+
 <<<<<<< HEAD
+
+Important links
+
+Fast food
 Zaxbys
+<<<<<<< HEAD
 Mcdonalds
 Chic fil a
 =======
+=======
+>>>>>>> b8c7cf8811c11ed289012c6fe95bd9d0b0e254a6
 
 What is the project about and links:
 change - jacob
->>>>>>> d17bc0b804f44e8a9e6287f8fb668c445a565c16
+
+
+
+=======
+# Load required libraries
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(plotly)
+library(DT)
+library(leaflet)
+library(lubridate)
+library(heatmaply)
+library(scales)
+
+
+
