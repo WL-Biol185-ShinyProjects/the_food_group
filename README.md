@@ -1,3 +1,39 @@
+<<<<<<< HEAD
+# Fast Food Analytics 
+
+<<<<<<< HEAD
+
+Important links
+
+Fast food
+Zaxbys
+<<<<<<< HEAD
+Mcdonalds
+Chic fil a
+=======
+=======
+>>>>>>> b8c7cf8811c11ed289012c6fe95bd9d0b0e254a6
+
+What is the project about and links:
+change - jacob
+
+
+
+=======
+# Load required libraries
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(plotly)
+library(DT)
+library(leaflet)
+library(lubridate)
+library(heatmaply)
+library(scales)
+
+
+
+=======
 # the_food_group
 
 #OUTLINE FOR APP
@@ -38,5 +74,11 @@ Graphs on
   Poverty vs BMI
   Do people eat more fast food because they are impoverished due to ease of access?
   
+<<<<<<< HEAD
 PAGE 5
 Access Raw Data / links to where data was recieved
+=======
+PAGE 4
+Access Raw Data / links to where data was recieved
+>>>>>>> 745164090782e075a7bc497764bb715c82477ea0
+>>>>>>> cae29b83161e83035a9e93784a9a29f02ab2a1bd
