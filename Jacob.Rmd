@@ -1163,6 +1163,12 @@ server <- function(input, output, session) {
   )
 }
 
+state_fastfood <- restaurants %>%
+  group_by(province) %>%
+  summarise(
+    total_stores = n(),
+    total_population = sum(population)
+  )
 # ============================================================================
 # RUN THE APPLICATION
 # ============================================================================
