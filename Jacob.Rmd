@@ -4,6 +4,10 @@ output:
   pdf_document: default
   html_document: default
 ---
+```{r}
+National_obesity <- read.csv("National Obesity by State.csv")
+National_obesity
+```
 
 ```{r}
 # app_real_data_enhanced.R - Fast Food Analytics Dashboard with REAL DATA
