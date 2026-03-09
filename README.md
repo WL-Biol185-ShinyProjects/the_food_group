@@ -36,6 +36,10 @@ library(scales)
 =======
 # the_food_group
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9de1c60eac61a78df8a4494ceedd4b50d0d4edb8
 #OUTLINE FOR APP
 
 PAGE 1
