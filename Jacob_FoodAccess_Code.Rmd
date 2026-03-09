@@ -1,0 +1,17 @@
+---
+title: "Jacob_FoodAccess_Code"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+food <- read.csv("FoodAccess.csv")
+
+names <- read.csv("FoodAccessVariableLookup.csv")
+
+colnames(food) <- names$LongName
+
+```
+
+
