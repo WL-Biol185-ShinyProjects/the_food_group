@@ -36,13 +36,16 @@ library(scales)
 =======
 # the_food_group
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 9de1c60eac61a78df8a4494ceedd4b50d0d4edb8
 #OUTLINE FOR APP
 
 PAGE 1
 Title Page, 
   introduce fast food 
-  why we are doing this website,
+  why we are doing this website
   where the data came from 
   
 PAGE 2
@@ -53,6 +56,11 @@ Location/Geographical Map
   BMI in each state vs fast food population in each state
   Fast food store density per state
   etc.
+  Fast food stores vs income
+  fast food consumption vs income
+  Fast food vs. Grocery Store Access?
+  Where are big fast food chains getting their meat? Is it same or different across chains?
+  
   
 PAGE 3
 Graphs
@@ -61,6 +69,8 @@ Graphs
   Transactions per restaurant
   Transactions vs BMI/Obesity type
   Most popular fast food
+  Healthiest vs unhealthiest state
+  healthiest vs unhealthiest fast food restaurant
   
 PAGE 4
 Graphs on
@@ -68,6 +78,11 @@ Graphs on
   Poverty vs BMI
   Do people eat more fast food because they are impoverished due to ease of access?
   
+<<<<<<< HEAD
+PAGE 5
+Access Raw Data / links to where data was recieved
+=======
 PAGE 4
 Access Raw Data / links to where data was recieved
 >>>>>>> 745164090782e075a7bc497764bb715c82477ea0
+>>>>>>> cae29b83161e83035a9e93784a9a29f02ab2a1bd
