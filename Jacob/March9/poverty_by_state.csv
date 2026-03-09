@@ -1,0 +1,53 @@
+State,PovertyPct,Rank
+"United States",8.7,0
+"Mississippi",14.3,51
+"Louisiana",14.2,50
+"New Mexico",13.7,49
+"West Virginia",11.9,48
+"Kentucky",11.8,47
+"Arkansas",11.5,46
+"Alabama",11.3,45
+"Oklahoma",11.1,44
+"District of Columbia",10.7,43
+"Texas",10.5,42
+"South Carolina",10.1,41
+"Georgia",9.9,39
+"Tennessee",9.9,39
+"New York",9.8,38
+"North Carolina",9.4,37
+"Ohio",9.2,36
+"Nevada",9.0,35
+"Arizona",8.9,33
+"Florida",8.9,33
+"Michigan",8.8,32
+"California",8.4,29
+"Indiana",8.4,29
+"Missouri",8.4,29
+"Illinois",8.2,28
+"Pennsylvania",8.1,27
+"Kansas",7.7,26
+"South Dakota",7.4,25
+"Delaware",7.3,23
+"Oregon",7.3,23
+"Montana",7.1,21
+"Wyoming",7.1,21
+"Idaho",7.0,18
+"New Jersey",7.0,18
+"Rhode Island",7.0,18
+"Hawaii",6.9,16
+"Iowa",6.9,16
+"Alaska",6.8,13
+"Connecticut",6.8,13
+"Virginia",6.8,13
+"Nebraska",6.7,12
+"Massachusetts",6.6,10
+"Wisconsin",6.6,10
+"Maine",6.5,9
+"Washington",6.4,8
+"Maryland",6.3,7
+"North Dakota",6.2,6
+"Colorado",5.9,5
+"Utah",5.7,3
+"Vermont",5.7,3
+"Minnesota",5.5,2
+"New Hampshire",4.4,1
