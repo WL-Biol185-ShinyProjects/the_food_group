@@ -1,8 +1,6 @@
 # the_food_group
 
 
-
-
 #OUTLINE FOR APP
 
 PAGE 1
