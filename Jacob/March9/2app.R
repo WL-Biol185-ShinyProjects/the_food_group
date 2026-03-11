@@ -41,6 +41,14 @@ state_data <- read.csv("state_data.csv", stringsAsFactors = FALSE) %>%
 # CPI data (USDA ERS 1974-2024)
 cpi <- read.csv("historical_cpi.csv", stringsAsFactors = FALSE)
 
+# Datafiniti fast food locations (lat/lon point data)
+ff_locs <- read.csv("Datafiniti_Fast_Food_Restaurants.csv", stringsAsFactors = FALSE) %>%
+  filter(!is.na(latitude), !is.na(longitude),
+         latitude  >  24,  latitude  <  50,
+         longitude > -125, longitude < -66) %>%
+  distinct(id, .keep_all = TRUE) %>%
+  mutate(name = trimws(name))
+
 # -- 2. SHAPEFILES ---------------------------------------------
 message("Loading shapefiles...")
 county_sf <- counties(cb = TRUE, resolution = "20m", year = 2020) %>%
@@ -119,6 +127,7 @@ ui <- dashboardPage(
       menuItem("State Rankings",    tabName = "bars",   icon = icon("chart-bar")),
       menuItem("Food Price Trends", tabName = "cpi",    icon = icon("chart-line")),
       menuItem("Demographics",      tabName = "demo",   icon = icon("users")),
+      menuItem("Location Map",      tabName = "locmap", icon = icon("location-dot")),
       menuItem("Data Table",        tabName = "data",   icon = icon("table"))
     )
   ),
@@ -132,6 +141,7 @@ ui <- dashboardPage(
       .info-box-icon { height:80px; line-height:80px; }
       #map_leaf   { height:600px !important; }
       #state_leaf { height:480px !important; }
+      #loc_map    { height:650px !important; }
       .src { font-size:0.78em; color:#888; margin-top:6px; }
     "))),
     tabItems(
@@ -319,6 +329,33 @@ ui <- dashboardPage(
                     title = "Outcome vs. Racial/Ethnic Composition - County Level",
                     status = "danger", solidHeader = TRUE,
                     plotlyOutput("demo_plot", height = 520))
+              )
+      ),
+      
+      # TAB 8: LOCATION MAP --------------------------------------
+      tabItem("locmap",
+              fluidRow(
+                box(width = 3, title = "Controls", status = "danger", solidHeader = TRUE,
+                    p(class = "src", paste0("Dataset: ", nrow(ff_locs), " locations")),
+                    hr(),
+                    strong("Filter by Chain"),
+                    br(), br(),
+                    actionButton("loc_all",  "Select All", class = "btn-sm btn-default",
+                                 style = "margin-bottom:6px;"),
+                    actionButton("loc_none", "Clear All",  class = "btn-sm btn-danger",
+                                 style = "margin-bottom:10px;"),
+                    checkboxGroupInput("loc_chains", NULL,
+                                       choices  = sort(unique(ff_locs$name)),
+                                       selected = sort(unique(ff_locs$name))
+                    ),
+                    hr(),
+                    p(class = "src", "Source: Datafiniti Business Database"),
+                    p(class = "src", "Points cluster at low zoom - click to expand.")
+                ),
+                box(width = 9,
+                    title = "Fast Food Restaurant Locations - Individual Sites",
+                    status = "danger", solidHeader = TRUE,
+                    leafletOutput("loc_map", height = 650))
               )
       ),
       
@@ -814,6 +851,57 @@ server <- function(input, output, session) {
     
     ggplotly(p, tooltip = c("text", "x", "y")) %>%
       layout(showlegend = FALSE)
+  })
+  
+  # LOCATION MAP ------------------------------------------------
+  observeEvent(input$loc_all, {
+    updateCheckboxGroupInput(session, "loc_chains",
+                             selected = sort(unique(ff_locs$name)))
+  })
+  observeEvent(input$loc_none, {
+    updateCheckboxGroupInput(session, "loc_chains", selected = character(0))
+  })
+  
+  output$loc_map <- renderLeaflet({
+    chains <- input$loc_chains
+    
+    if (length(chains) == 0) {
+      return(
+        leaflet() %>%
+          addProviderTiles("CartoDB.Positron") %>%
+          setView(lng = -96, lat = 38, zoom = 4)
+      )
+    }
+    
+    d <- ff_locs %>% filter(name %in% chains)
+    
+    chain_pal <- colorFactor(
+      palette = "Set1",
+      domain  = ff_locs$name   # full domain keeps colors stable as chains toggle
+    )
+    
+    leaflet(d) %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      addCircleMarkers(
+        lng         = ~longitude,
+        lat         = ~latitude,
+        radius      = 5,
+        color       = ~chain_pal(name),
+        fillOpacity = 0.75,
+        stroke      = FALSE,
+        label       = ~paste0(name, " | ", city, ", ", province, " ", postalCode),
+        clusterOptions = markerClusterOptions(
+          maxClusterRadius    = 40,
+          zoomToBoundsOnClick = TRUE
+        )
+      ) %>%
+      addLegend(
+        pal      = chain_pal,
+        values   = ~name,
+        title    = "Chain",
+        position = "bottomright"
+      ) %>%
+      setView(lng = -96, lat = 38, zoom = 4)
   })
   
   # DATA TABLE --------------------------------------------------
