@@ -1,0 +1,168 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+# ============================================================
+#  Fast Food & Health in America — Shiny Dashboard
+#  app.R  (single-file entry point; sources modular R files)
+# ============================================================
+ 
+library(shiny)
+library(bslib)          # modern Bootstrap 5 theming
+library(dplyr)
+library(readr)
+library(leaflet)
+library(leaflet.extras)
+library(plotly)
+library(DT)
+library(ggplot2)
+library(scales)
+library(tidyr)
+library(stringr)
+library(viridis)
+library(RColorBrewer)
+ 
+# Source modular helpers
+source("R/data_load.R")
+source("R/ui_components.R")
+source("R/server_chains.R")
+source("R/server_nutrition.R")
+source("R/server_obesity.R")
+source("R/server_race.R")
+source("R/server_map.R")
+ 
+# ── Load data once at startup ────────────────────────────────
+dat <- load_all_data()
+ 
+# ── Theme ────────────────────────────────────────────────────
+app_theme <- bs_theme(
+  version       = 5,
+  bg            = "#faf7f2",
+  fg            = "#2d2520",
+  primary       = "#d4380d",
+  secondary     = "#8c7355",
+  success       = "#27ae60",
+  info          = "#2980b9",
+  warning       = "#e67e22",
+  danger        = "#c0392b",
+  base_font     = font_google("DM Sans"),
+  heading_font  = font_google("DM Serif Display"),
+  code_font     = font_google("Space Mono"),
+  "navbar-bg"   = "#1a1612",
+  "navbar-light-color" = "#f0ede6",
+  "card-border-color"  = "#ede8df",
+  "card-bg"            = "#ffffff",
+  "body-bg"            = "#faf7f2"
+)
+ 
+# ── UI ───────────────────────────────────────────────────────
+ui <- page_navbar(
+  title = tags$span(
+    tags$span("Fast Food", style = "font-family:'DM Serif Display';"),
+    tags$em(" & ", style = "color:#e67e22; font-style:italic;"),
+    tags$span("Health", style = "font-family:'DM Serif Display';")
+  ),
+  theme    = app_theme,
+  bg       = "#1a1612",
+  fillable = TRUE,
+  id       = "main_nav",
+ 
+  # Custom CSS
+  header = tags$head(
+    tags$link(rel = "stylesheet",
+      href = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap"),
+    tags$style(HTML(app_css()))
+  ),
+ 
+  # ── Hero panel ───────────────────────────────────────────
+  nav_panel(
+    title = "Overview",
+    icon  = icon("chart-bar"),
+    hero_ui("hero", dat)
+  ),
+ 
+  # ── Chains ───────────────────────────────────────────────
+  nav_panel(
+    title = "Chains",
+    icon  = icon("store"),
+    chains_ui("chains")
+  ),
+ 
+  # ── Nutrition ────────────────────────────────────────────
+  nav_panel(
+    title = "Nutrition",
+    icon  = icon("apple-alt"),
+    nutrition_ui("nutrition")
+  ),
+ 
+  # ── Obesity ──────────────────────────────────────────────
+  nav_panel(
+    title = "Obesity",
+    icon  = icon("heartbeat"),
+    obesity_ui("obesity")
+  ),
+ 
+  # ── Race / Demographics ──────────────────────────────────
+  nav_panel(
+    title = "Demographics",
+    icon  = icon("users"),
+    race_ui("race")
+  ),
+ 
+  # ── Interactive Map ──────────────────────────────────────
+  nav_panel(
+    title = "Map",
+    icon  = icon("map-marked-alt"),
+    map_ui("map")
+  ),
+ 
+  # ── Data Explorer ────────────────────────────────────────
+  nav_panel(
+    title = "Data",
+    icon  = icon("table"),
+    data_explorer_ui("data_exp", dat)
+  ),
+ 
+  nav_spacer(),
+  nav_item(
+    tags$a(
+      icon("github"), " GitHub",
+      href   = "https://github.com/YOUR_USERNAME/fastfood-health-dashboard",
+      target = "_blank",
+      class  = "btn btn-sm btn-outline-light me-2"
+    )
+  )
+)
+ 
+# ── Server ───────────────────────────────────────────────────
+server <- function(input, output, session) {
+ 
+  chains_server("chains",      dat)
+  nutrition_server("nutrition", dat)
+  obesity_server("obesity",    dat)
+  race_server("race",          dat)
+  map_server("map",            dat)
+  data_explorer_server("data_exp", dat)
+ 
+  # Hero KPI boxes
+  output$hero_kpi_chains    <- renderText(nrow(dat$chains))
+  output$hero_kpi_locations <- renderText(format(nrow(dat$locations), big.mark = ","))
+  output$hero_kpi_items     <- renderText(format(nrow(dat$nutrition), big.mark = ","))
+  output$hero_kpi_states    <- renderText(n_distinct(dat$obesity$NAME))
+}
+ 
+shinyApp(ui, server)
+ 
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

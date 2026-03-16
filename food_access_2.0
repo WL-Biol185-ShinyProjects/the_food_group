@@ -1,9 +1,0 @@
----
-title: "food_access_2.0"
-output: html_document
-date: "2026-03-09"
----
-df <- read.csv("food_access.csv")
-
-df$County <- NULL
-
