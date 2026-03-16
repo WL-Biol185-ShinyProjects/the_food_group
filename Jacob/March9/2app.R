@@ -34,6 +34,19 @@ atlas <- read.csv("atlas_wide.csv", stringsAsFactors = FALSE) %>%
            ~ suppressWarnings(as.numeric(na_if(as.character(.), ""))))
   )
 
+# True county-level obesity (CDC 2023) - replaces the state-repeated
+# PCT_OBESE_ADULTS22 field in atlas which is only state-level estimates.
+# Values are percentages (e.g. 34.3 = 34.3%).
+obesity_county <- read.csv("obesity_county_2023.csv", stringsAsFactors = FALSE) %>%
+  mutate(FIPS = formatC(as.integer(FIPS), width = 5, flag = "0"))
+
+# Join true county obesity into atlas, overwriting the state-level placeholder
+atlas <- atlas %>%
+  left_join(obesity_county %>% select(FIPS, ObesityPct2023), by = "FIPS") %>%
+  mutate(PCT_OBESE_ADULTS22 = ifelse(!is.na(ObesityPct2023), ObesityPct2023,
+                                     PCT_OBESE_ADULTS22)) %>%
+  select(-ObesityPct2023)
+
 # State-level data: BLS LAUS unemployment + Census ACS poverty + median income
 state_data <- read.csv("state_data.csv", stringsAsFactors = FALSE) %>%
   mutate(MedianHHIncome2022 = as.numeric(MedianHHIncome2022))
@@ -159,7 +172,8 @@ ui <- dashboardPage(
                     strong("Summary Statistics"),
                     verbatimTextOutput("map_summary"),
                     hr(),
-                    p(class = "src", "Source: USDA Food Environment Atlas 2020-2022"),
+                    p(class = "src", "Obesity: CDC BRFSS 2023 (true county-level)."),
+                    p(class = "src", "All other variables: USDA Food Environment Atlas 2020-2022."),
                     p(class = "src", "Click any county for details.")
                 ),
                 box(width = 9, title = "U.S. County Map (Continental)", status = "danger",
