@@ -409,9 +409,9 @@ ui <- fluidPage(
         "An interactive look at how fast food chains, nutritional choices, obesity rates, poverty,
        and demographics intersect across the United States — powered by real datasets."),
       div(class="hero-kpis",
-          div(div(class="kpi-num","9,999"),div(class="kpi-label","Restaurant Locations")),
-          div(div(class="kpi-num","515"),  div(class="kpi-label","Menu Items Analyzed")),
-          div(div(class="kpi-num","51"),   div(class="kpi-label","States + DC"))
+          
+          
+         
       )
   ),
   
