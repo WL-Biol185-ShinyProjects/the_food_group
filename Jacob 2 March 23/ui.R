@@ -25,13 +25,30 @@ aboutTabUI <- function() {
       .about-footer-note strong { color:#2c2318; }
     ")),
     div(class="about-page",
-        tags$div(style="height:40px;"),
-        div(class="stat-strip",
-            div(class="stat-card", div(class="stat-number","200K+"), div(class="stat-label","Fast-food locations across the U.S.")),
-            div(class="stat-card", div(class="stat-number","~36%"),  div(class="stat-label","Adults who eat fast food daily")),
-            div(class="stat-card", div(class="stat-number","50"),    div(class="stat-label","Top chains analyzed")),
-            div(class="stat-card", div(class="stat-number","$331B"), div(class="stat-label","U.S. fast-food industry revenue (2023)"))
+        # Stat strip
+        tags$div(style = "height:40px;"), # spacer
+        
+        tags$h2("Stats About Fast Food"),
+        
+        div(class = "stat-strip",
+            div(class = "stat-card",
+                div(class = "stat-number", "200K+"),
+                div(class = "stat-label",  "Fast-food locations\nacross the U.S.")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "~36%"),
+                div(class = "stat-label",  "Adults who eat\nfast food daily")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "50"),
+                div(class = "stat-label",  "Top chains\nanalyzed")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "$331B"),
+                div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
+            )
         ),
+        
         div(class="about-content",
             div(class="about-section",
                 tags$h2("About Our Project"),
