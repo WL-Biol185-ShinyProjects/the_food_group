@@ -3,275 +3,76 @@ library(leaflet)
 library(plotly)
 library(DT)
 
-#seperate function for about page which is called further down "tabpanel("about")
+# ── ABOUT PAGE UI ────────────────────────────────────────────
 aboutTabUI <- function() {
   tagList(
-    # ── Page-scoped CSS ───────────────────────────────────────────────────────
     tags$style(HTML("
-
-      /* ── Google Fonts ── */
       @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700;900&display=swap');
-
-      /* ── About wrapper ── */
-      .about-page {
-        background : #faf7f2;
-        font-family: 'DM Sans', sans-serif;
-        color      : #2c2318;
-        min-height : 100vh;
-        padding    : 0 0 80px;
-      }
-
-      /* ── Hero banner ── */
-      .about-hero {
-        background   : linear-gradient(135deg, #1a0f00 0%, #3b1f00 55%, #6b3a10 100%);
-        padding      : 72px 5% 64px;
-        position     : relative;
-        overflow     : hidden;
-      }
-      .about-hero::before {
-        content    : '';
-        position   : absolute;
-        inset      : 0;
-        background : repeating-linear-gradient(
-                       -45deg,
-                       transparent,
-                       transparent 18px,
-                       rgba(255,199,44,.04) 18px,
-                       rgba(255,199,44,.04) 19px
-                     );
-        pointer-events: none;
-      }
-      .about-hero-eyebrow {
-        font-family   : 'DM Sans', sans-serif;
-        font-size     : .78rem;
-        font-weight   : 600;
-        letter-spacing: .18em;
-        text-transform: uppercase;
-        color         : #FFC72C;
-        margin-bottom : 14px;
-      }
-      .about-hero h1 {
-        font-family : 'Playfair Display', Georgia, serif;
-        font-size   : clamp(2.4rem, 5vw, 4rem);
-        font-weight : 900;
-        color       : #fff;
-        line-height : 1.08;
-        margin      : 0 0 20px;
-      }
-      .about-hero h1 span {
-        color: #FFC72C;
-      }
-      .about-hero-sub {
-        font-size  : 1.05rem;
-        color      : rgba(255,255,255,.72);
-        max-width  : 560px;
-        line-height: 1.7;
-        margin     : 0;
-      }
-
-      /* ── Content section ── */
-      .about-content {
-        max-width: 860px;
-        margin   : 0 auto;
-        padding  : 60px 5% 0;
-      }
-
-      /* ── Stat strip ── */
-      .stat-strip {
-        display              : grid;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-        gap                  : 16px;
-        margin               : 0 auto 56px;
-        max-width            : 860px;
-        padding              : 0 5%;
-      }
-      .stat-card {
-        background   : #fff;
-        border       : 1px solid #e8dfd0;
-        border-radius: 10px;
-        padding      : 22px 20px 18px;
-        text-align   : center;
-        box-shadow   : 0 2px 8px rgba(0,0,0,.04);
-        transition   : transform .18s ease, box-shadow .18s ease;
-      }
-      .stat-card:hover {
-        transform : translateY(-3px);
-        box-shadow: 0 6px 18px rgba(0,0,0,.08);
-      }
-      .stat-number {
-        font-family: 'Playfair Display', Georgia, serif;
-        font-size  : 2.1rem;
-        font-weight: 700;
-        color      : #d4380d;
-        line-height: 1;
-        margin     : 0 0 6px;
-      }
-      .stat-label {
-        font-size  : .78rem;
-        font-weight: 500;
-        color      : #7a6a57;
-        line-height: 1.35;
-      }
-
-      /* ── Body copy ── */
-      .about-section {
-        margin-bottom: 48px;
-      }
-      .about-section h2 {
-        font-family  : 'Playfair Display', Georgia, serif;
-        font-size    : 1.55rem;
-        font-weight  : 700;
-        color        : #1a0f00;
-        margin       : 0 0 16px;
-        padding-left : 16px;
-        border-left  : 4px solid #FFC72C;
-      }
-      .about-section p {
-        font-size  : 1rem;
-        line-height: 1.82;
-        color      : #3d2e1e;
-        margin     : 0 0 16px;
-      }
-
-      /* ── Divider ── */
-      .about-divider {
-        border     : none;
-        border-top : 1px solid #e8dfd0;
-        margin     : 0 0 48px;
-      }
-
-      /* ── Topic pills ── */
-      .topic-row {
-        display  : flex;
-        flex-wrap: wrap;
-        gap      : 10px;
-        margin-top: 18px;
-      }
-      .topic-pill {
-        background   : #fff3d6;
-        border       : 1px solid #e0c97a;
-        border-radius: 999px;
-        padding      : 5px 16px;
-        font-size    : .82rem;
-        font-weight  : 500;
-        color        : #7a4f00;
-      }
-
-      /* ── Team / footer strip ── */
-      .about-footer-note {
-        background   : #fff;
-        border       : 1px solid #e8dfd0;
-        border-radius: 10px;
-        padding      : 24px 28px;
-        font-size    : .88rem;
-        color        : #7a6a57;
-        line-height  : 1.7;
-        margin-top   : 12px;
-      }
-      .about-footer-note strong {
-        color: #2c2318;
-      }
+      .about-page { background:#faf7f2; font-family:'DM Sans',sans-serif; color:#2c2318; min-height:100vh; padding:0 0 80px; }
+      .about-hero { background:linear-gradient(135deg,#1a0f00 0%,#3b1f00 55%,#6b3a10 100%); padding:72px 5% 64px; position:relative; overflow:hidden; }
+      .about-hero::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(-45deg,transparent,transparent 18px,rgba(255,199,44,.04) 18px,rgba(255,199,44,.04) 19px); pointer-events:none; }
+      .about-hero-eyebrow { font-family:'DM Sans',sans-serif; font-size:.78rem; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:#FFC72C; margin-bottom:14px; }
+      .about-hero h1 { font-family:'Playfair Display',Georgia,serif; font-size:clamp(2.4rem,5vw,4rem); font-weight:900; color:#fff; line-height:1.08; margin:0 0 20px; }
+      .about-hero h1 span { color:#FFC72C; }
+      .about-hero-sub { font-size:1.05rem; color:rgba(255,255,255,.72); max-width:560px; line-height:1.7; margin:0; }
+      .about-content { max-width:860px; margin:0 auto; padding:60px 5% 0; }
+      .stat-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin:0 auto 56px; max-width:860px; padding:0 5%; }
+      .stat-card { background:#fff; border:1px solid #e8dfd0; border-radius:10px; padding:22px 20px 18px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.04); transition:transform .18s ease,box-shadow .18s ease; }
+      .stat-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
+      .stat-number { font-family:'Playfair Display',Georgia,serif; font-size:2.1rem; font-weight:700; color:#d4380d; line-height:1; margin:0 0 6px; }
+      .stat-label { font-size:.78rem; font-weight:500; color:#7a6a57; line-height:1.35; }
+      .about-section { margin-bottom:48px; }
+      .about-section h2 { font-family:'Playfair Display',Georgia,serif; font-size:1.55rem; font-weight:700; color:#1a0f00; margin:0 0 16px; padding-left:16px; border-left:4px solid #FFC72C; }
+      .about-section p { font-size:1rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
+      .about-divider { border:none; border-top:1px solid #e8dfd0; margin:0 0 48px; }
+      .topic-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+      .topic-pill { background:#fff3d6; border:1px solid #e0c97a; border-radius:999px; padding:5px 16px; font-size:.82rem; font-weight:500; color:#7a4f00; }
+      .about-footer-note { background:#fff; border:1px solid #e8dfd0; border-radius:10px; padding:24px 28px; font-size:.88rem; color:#7a6a57; line-height:1.7; margin-top:12px; }
+      .about-footer-note strong { color:#2c2318; }
     ")),
-    
-    # ── Markup ────────────────────────────────────────────────────────────────
-    div(class = "about-page",
-        
-        # Stat strip
-        tags$div(style = "height:40px;"),  # spacer
-        div(class = "stat-strip",
-            div(class = "stat-card",
-                div(class = "stat-number", "200K+"),
-                div(class = "stat-label",  "Fast-food locations\nacross the U.S.")
-            ),
-            div(class = "stat-card",
-                div(class = "stat-number", "~36%"),
-                div(class = "stat-label",  "Adults who eat\nfast food daily")
-            ),
-            div(class = "stat-card",
-                div(class = "stat-number", "50"),
-                div(class = "stat-label",  "Top chains\nanalyzed")
-            ),
-            div(class = "stat-card",
-                div(class = "stat-number", "$331B"),
-                div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
-            )
+    div(class="about-page",
+        tags$div(style="height:40px;"),
+        div(class="stat-strip",
+            div(class="stat-card", div(class="stat-number","200K+"), div(class="stat-label","Fast-food locations across the U.S.")),
+            div(class="stat-card", div(class="stat-number","~36%"),  div(class="stat-label","Adults who eat fast food daily")),
+            div(class="stat-card", div(class="stat-number","50"),    div(class="stat-label","Top chains analyzed")),
+            div(class="stat-card", div(class="stat-number","$331B"), div(class="stat-label","U.S. fast-food industry revenue (2023)"))
         ),
-        
-        # Body content
-        div(class = "about-content",
-            
-            # ── About the project
-            div(class = "about-section",
+        div(class="about-content",
+            div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p(
-                  "Our project explores the growth, impact, and consequences of the
-             fast-food industry in the United States. What began in the early
-             20th century as a convenient and affordable dining option has
-             evolved into a dominant force in American culture, shaping how
-             people eat, spend money, and experience food."
-                ),
-                tags$p(
-                  "The rise of chains like White Castle, followed by industry leaders
-             such as McDonald's and Burger King, introduced a model centered on
-             speed, consistency, and low cost. While this innovation made food
-             more accessible, it also contributed to a shift away from fresh,
-             home-cooked meals toward highly processed options that are often
-             high in calories, sodium, and fat."
-                )
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
             ),
-            
-            tags$hr(class = "about-divider"),
-            
-            # ── What we examine
-            div(class = "about-section",
+            tags$hr(class="about-divider"),
+            div(class="about-section",
                 tags$h2("What We Examine"),
-                tags$p(
-                  "This project uses interactive data visualizations to examine the
-             relationship between fast food and public health. By analyzing
-             nutritional information, restaurant distribution, and state-level
-             data on obesity and poverty, this project highlights how fast food
-             consumption is connected to broader social and economic patterns."
-                ),
-                div(class = "topic-row",
-                    span(class = "topic-pill", HTML("&#x1F354; Nutritional Data")),
-                    span(class = "topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
-                    span(class = "topic-pill", HTML("&#x1F4CA; Obesity by State")),
-                    span(class = "topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
-                    span(class = "topic-pill", HTML("&#x1F465; Race & Demographics"))
+                tags$p("This project uses interactive data visualizations to examine the relationship between fast food and public health. By analyzing nutritional information, restaurant distribution, and state-level data on obesity and poverty, this project highlights how fast food consumption is connected to broader social and economic patterns."),
+                div(class="topic-row",
+                    span(class="topic-pill", HTML("&#x1F354; Nutritional Data")),
+                    span(class="topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
+                    span(class="topic-pill", HTML("&#x1F4CA; Obesity by State")),
+                    span(class="topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
+                    span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
                 )
             ),
-            
-            tags$hr(class = "about-divider"),
-            
-            # ── Data sources / footer note
-            div(class = "about-section",
+            tags$hr(class="about-divider"),
+            div(class="about-section",
                 tags$h2("Data & Methods"),
-                div(class = "about-footer-note",
-                    tags$strong("Datasets used in this project include: "),
+                div(class="about-footer-note",
+                    tags$strong("Datasets used in this project include:"),
                     tags$br(),
-                    HTML(
-                      "&#x2022; Top 50 Fast-Food Chains in the USA (systemwide sales & unit counts)<br>
-               &#x2022; Fast-food nutritional information by menu item<br>
-               &#x2022; National Obesity by State (CDC / BRFSS)<br>
-               &#x2022; Poverty rates by state (U.S. Census Bureau, 2023)<br>
-               &#x2022; Race &amp; ethnicity demographics by state<br>
-               &#x2022; Fast-food restaurant geolocation data"
-                    ),
+                    HTML("&#x2022; Top 50 Fast-Food Chains in the USA (systemwide sales & unit counts)<br>&#x2022; Fast-food nutritional information by menu item<br>&#x2022; National Obesity by State (CDC / BRFSS)<br>&#x2022; Poverty rates by state (U.S. Census Bureau, 2023)<br>&#x2022; Race &amp; ethnicity demographics by state<br>&#x2022; Fast-food restaurant geolocation data"),
                     tags$br(), tags$br(),
-                    "All visualizations are built with ",
-                    tags$strong("R Shiny"), ", ",
-                    tags$strong("Leaflet"), ", ",
-                    tags$strong("Plotly"), ", and ",
-                    tags$strong("DT"),
-                    ". Data reflects the most recent available reporting year for each source."
+                    "All visualizations are built with ", tags$strong("R Shiny"), ", ", tags$strong("Leaflet"), ", ", tags$strong("Plotly"), ", and ", tags$strong("DT"), ". Data reflects the most recent available reporting year for each source."
                 )
             )
-            
-        ) # /.about-content
-    )   # /.about-page
+        )
+    )
   )
 }
 
+# ── UI ───────────────────────────────────────────────────────
 ui <- fluidPage(
   tags$head(
     tags$link(rel="preconnect", href="https://fonts.googleapis.com"),
@@ -365,25 +166,13 @@ ui <- fluidPage(
       .gradient-labels { display:flex; justify-content:space-between; font-size:.68rem; color:var(--brown); }
 
       /* ── COMPARE TAB ── */
-      .compare-pickers {
-        display:grid; grid-template-columns:1fr 48px 1fr;
-        gap:.8rem; align-items:center; margin-bottom:1.4rem;
-      }
-      .compare-picker-box {
-        background:white; border:1px solid var(--paper); padding:1rem 1.2rem;
-      }
-      .compare-map-label {
-        font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
-        text-transform:uppercase; margin-bottom:.5rem; display:block;
-      }
+      .compare-pickers { display:grid; grid-template-columns:1fr 48px 1fr; gap:.8rem; align-items:center; margin-bottom:1.4rem; }
+      .compare-picker-box { background:white; border:1px solid var(--paper); padding:1rem 1.2rem; }
+      .compare-map-label { font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.5rem; display:block; }
       .compare-map-label.left  { color:#1a73e8; border-left:3px solid #1a73e8; padding-left:.5rem; }
       .compare-map-label.right { color:#c0392b; border-left:3px solid #c0392b; padding-left:.5rem; }
       .compare-vs { font-family:var(--serif); font-size:1.8rem; color:var(--tan); text-align:center; }
-
-      .compare-maps-wrap {
-        display:grid; grid-template-columns:1fr 1fr;
-        gap:1.2rem; margin-bottom:1.4rem;
-      }
+      .compare-maps-wrap { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.4rem; }
       @media(max-width:860px) { .compare-maps-wrap { grid-template-columns:1fr; } }
       .compare-map-panel { background:white; border:1px solid var(--paper); padding:1rem; }
       .compare-legend-title { font-family:var(--mono); font-size:.67rem; color:var(--brown); margin-bottom:.3rem; }
@@ -397,26 +186,20 @@ ui <- fluidPage(
     "))
   ),
   
-  # ── HERO ────────────────────────────────────────────────────
+  # ── HERO ──────────────────────────────────────────────────
   div(class="hero",
       div(class="hero-eyebrow", "American Fast Food & Public Health · Data Explorer"),
-      h1(HTML("Fast Food, Health, and  Poverty in America")),
+      h1(HTML("Fast Food, Health, and Poverty in America")),
       p(class="hero-desc",
         "An interactive look at how fast food chains, nutritional choices, obesity rates, poverty,
        and demographics intersect across the United States — powered by real datasets."),
-      div(class="hero-kpis",
-          
-          
-         
-      )
+      div(class="hero-kpis")
   ),
   
-  # ── MAIN TABS ───────────────────────────────────────────────
+  # ── MAIN TABS ──────────────────────────────────────────────
   navbarPage(title="", id="nav",
              
-             tabPanel("About",
-                      aboutTabUI()
-             ),
+             tabPanel("About", aboutTabUI()),
              
              tabPanel("Chains",
                       div(class="section-header",
@@ -488,16 +271,19 @@ ui <- fluidPage(
                       )
              ),
              
+             # ── DEMOGRAPHICS TAB — replaced with bubble plot ──────────
              tabPanel("Demographics",
                       div(class="section-header",
-                          div(div(class="section-label","Demographics & Fast Food"),
-                              div(class="section-title","Fast Food Density by Racial Majority")),
-                          div(class="section-meta","Sources: KFF State Health Facts 2024 · Datafiniti")
+                          div(div(class="section-label","Demographics · Food Environment Atlas 2025"),
+                              div(class="section-title","Food Insecurity, Income & Obesity by Race")),
+                          div(class="section-meta","3,000+ U.S. counties · Bubble size = Obesity Rate")
                       ),
                       div(class="chart-box",
-                          div(class="chart-box-title","Fast Food Locations per 100k People — by State"),
-                          div(class="chart-box-sub","States colored by their largest racial/ethnic group · Hover for details"),
-                          plotlyOutput("demoFFChart", height="620px")
+                          div(class="chart-box-title",
+                              "Food Insecurity vs. Median Household Income — County Level"),
+                          div(class="chart-box-sub",
+                              "Each bubble = one county shown per racial group present at >5% county share  \u00b7  Bubble size = obesity rate  \u00b7  Color = race group  \u00b7  Hover for details"),
+                          plotlyOutput("demoBubbleChart", height="680px")
                       )
              ),
              
@@ -527,113 +313,45 @@ ui <- fluidPage(
                                div(class="filter-panel",
                                    div(class="chart-box-title","Filter Chains"),
                                    div(class="chart-box-sub","Click to toggle chains on/off"),
-                                   actionButton("toggleAllChains", "Deselect All", class="btn-filter-toggle"),
+                                   actionButton("toggleAllChains","Deselect All", class="btn-filter-toggle"),
                                    uiOutput("chainFilterUI")
                                )
                         )
                       )
              ),
              
-             # ── COMPARE TAB ────────────────────────────────────────────
+             # ── COMPARE TAB ──────────────────────────────────────────
              tabPanel("Compare",
                       div(class="section-header",
                           div(div(class="section-label","Geographic Comparison · USDA Food Environment Atlas 2025"),
                               div(class="section-title","Compare Any Two Variables, County by County")),
                           div(class="section-meta","3,153 U.S. counties · Obesity, Diabetes, Poverty, Food Security & more")
                       ),
-                      
-                      # Variable pickers
                       div(class="compare-pickers",
                           div(class="compare-picker-box",
-                              span(class="compare-map-label left", "Left Map — Variable A"),
+                              span(class="compare-map-label left","Left Map — Variable A"),
                               selectInput("compareVarA", NULL, width="100%",
-                                          choices = list(
-                                            "Health" = c(
-                                              "Obesity Rate by County % (2023)"    = "ObesityRate2022",
-                                              "Diabetes Rate % (2019)"             = "DiabetesRate2019",
-                                              "Physically Active HS % (2021)"      = "PctHSPhysActive2021"
-                                            ),
-                                            "Food Security" = c(
-                                              "Food Insecurity % (2021-23)"        = "FoodInsecPct2123",
-                                              "Very Low Food Security % (2021-23)" = "VeryLowFoodSecPct2123",
-                                              "Low Food Access % (2019)"           = "PctLowAccess2019",
-                                              "Low Income + Low Access %"          = "PctLowIncLowAccess2019",
-                                              "Children Low Access %"              = "PctChildLowAccess2019"
-                                            ),
-                                            "Economics" = c(
-                                              "Poverty Rate % (2021)"              = "PovRate2021",
-                                              "Child Poverty Rate % (2021)"        = "ChildPovRate2021",
-                                              "Deep Poverty Rate % (2021)"         = "DeepPovRate2021",
-                                              "Median HH Income $ (2021)"          = "MedianHHInc2021",
-                                              "SNAP Participation % (2022)"        = "SNAPPct2022",
-                                              "School Lunch % (2021)"              = "SchoolLunchPct2021"
-                                            ),
-                                            "Food Environment" = c(
-                                              "Fast Food per 1k (2020)"            = "FFRPer1k2020",
-                                              "Grocery Stores per 1k (2020)"       = "GrocPer1k2020",
-                                              "Dollar Stores per 1k (2020)"        = "DollarPer1k2020",
-                                              "Conv Stores per 1k (2020)"          = "ConvPer1k2020",
-                                              "Rec Facilities per 1k (2020)"       = "RecFacPer1k2020",
-                                              "Farmers Markets per 1k (2018)"      = "FarmMktPer1k2018"
-                                            ),
-                                            "Demographics" = c(
-                                              "% White (2020)"                     = "PctWhite2020",
-                                              "% Black (2020)"                     = "PctBlack2020",
-                                              "% Hispanic (2020)"                  = "PctHisp2020",
-                                              "% Age 65+ (2020)"                   = "Pct65Plus2020",
-                                              "% Under 18 (2020)"                  = "PctUnder182020"
-                                            )
-                                          ),
-                                          selected = "ObesityRate2022"
-                              )
+                                          choices=list(
+                                            "Health"=c("Obesity Rate by County % (2023)"="ObesityRate2022","Diabetes Rate % (2019)"="DiabetesRate2019","Physically Active HS % (2021)"="PctHSPhysActive2021"),
+                                            "Food Security"=c("Food Insecurity % (2021-23)"="FoodInsecPct2123","Very Low Food Security % (2021-23)"="VeryLowFoodSecPct2123","Low Food Access % (2019)"="PctLowAccess2019","Low Income + Low Access %"="PctLowIncLowAccess2019","Children Low Access %"="PctChildLowAccess2019"),
+                                            "Economics"=c("Poverty Rate % (2021)"="PovRate2021","Child Poverty Rate % (2021)"="ChildPovRate2021","Deep Poverty Rate % (2021)"="DeepPovRate2021","Median HH Income $ (2021)"="MedianHHInc2021","SNAP Participation % (2022)"="SNAPPct2022","School Lunch % (2021)"="SchoolLunchPct2021"),
+                                            "Food Environment"=c("Fast Food per 1k (2020)"="FFRPer1k2020","Grocery Stores per 1k (2020)"="GrocPer1k2020","Dollar Stores per 1k (2020)"="DollarPer1k2020","Conv Stores per 1k (2020)"="ConvPer1k2020","Rec Facilities per 1k (2020)"="RecFacPer1k2020","Farmers Markets per 1k (2018)"="FarmMktPer1k2018"),
+                                            "Demographics"=c("% White (2020)"="PctWhite2020","% Black (2020)"="PctBlack2020","% Hispanic (2020)"="PctHisp2020","% Age 65+ (2020)"="Pct65Plus2020","% Under 18 (2020)"="PctUnder182020")
+                                          ), selected="ObesityRate2022")
                           ),
-                          div(class="compare-vs", "vs"),
+                          div(class="compare-vs","vs"),
                           div(class="compare-picker-box",
-                              span(class="compare-map-label right", "Right Map — Variable B"),
+                              span(class="compare-map-label right","Right Map — Variable B"),
                               selectInput("compareVarB", NULL, width="100%",
-                                          choices = list(
-                                            "Health" = c(
-                                              "Obesity Rate by County % (2023)"    = "ObesityRate2022",
-                                              "Diabetes Rate % (2019)"             = "DiabetesRate2019",
-                                              "Physically Active HS % (2021)"      = "PctHSPhysActive2021"
-                                            ),
-                                            "Food Security" = c(
-                                              "Food Insecurity % (2021-23)"        = "FoodInsecPct2123",
-                                              "Very Low Food Security % (2021-23)" = "VeryLowFoodSecPct2123",
-                                              "Low Food Access % (2019)"           = "PctLowAccess2019",
-                                              "Low Income + Low Access %"          = "PctLowIncLowAccess2019",
-                                              "Children Low Access %"              = "PctChildLowAccess2019"
-                                            ),
-                                            "Economics" = c(
-                                              "Poverty Rate % (2021)"              = "PovRate2021",
-                                              "Child Poverty Rate % (2021)"        = "ChildPovRate2021",
-                                              "Deep Poverty Rate % (2021)"         = "DeepPovRate2021",
-                                              "Median HH Income $ (2021)"          = "MedianHHInc2021",
-                                              "SNAP Participation % (2022)"        = "SNAPPct2022",
-                                              "School Lunch % (2021)"              = "SchoolLunchPct2021"
-                                            ),
-                                            "Food Environment" = c(
-                                              "Fast Food per 1k (2020)"            = "FFRPer1k2020",
-                                              "Grocery Stores per 1k (2020)"       = "GrocPer1k2020",
-                                              "Dollar Stores per 1k (2020)"        = "DollarPer1k2020",
-                                              "Conv Stores per 1k (2020)"          = "ConvPer1k2020",
-                                              "Rec Facilities per 1k (2020)"       = "RecFacPer1k2020",
-                                              "Farmers Markets per 1k (2018)"      = "FarmMktPer1k2018"
-                                            ),
-                                            "Demographics" = c(
-                                              "% White (2020)"                     = "PctWhite2020",
-                                              "% Black (2020)"                     = "PctBlack2020",
-                                              "% Hispanic (2020)"                  = "PctHisp2020",
-                                              "% Age 65+ (2020)"                   = "Pct65Plus2020",
-                                              "% Under 18 (2020)"                  = "PctUnder182020"
-                                            )
-                                          ),
-                                          selected = "PovRate2021"
-                              )
+                                          choices=list(
+                                            "Health"=c("Obesity Rate by County % (2023)"="ObesityRate2022","Diabetes Rate % (2019)"="DiabetesRate2019","Physically Active HS % (2021)"="PctHSPhysActive2021"),
+                                            "Food Security"=c("Food Insecurity % (2021-23)"="FoodInsecPct2123","Very Low Food Security % (2021-23)"="VeryLowFoodSecPct2123","Low Food Access % (2019)"="PctLowAccess2019","Low Income + Low Access %"="PctLowIncLowAccess2019","Children Low Access %"="PctChildLowAccess2019"),
+                                            "Economics"=c("Poverty Rate % (2021)"="PovRate2021","Child Poverty Rate % (2021)"="ChildPovRate2021","Deep Poverty Rate % (2021)"="DeepPovRate2021","Median HH Income $ (2021)"="MedianHHInc2021","SNAP Participation % (2022)"="SNAPPct2022","School Lunch % (2021)"="SchoolLunchPct2021"),
+                                            "Food Environment"=c("Fast Food per 1k (2020)"="FFRPer1k2020","Grocery Stores per 1k (2020)"="GrocPer1k2020","Dollar Stores per 1k (2020)"="DollarPer1k2020","Conv Stores per 1k (2020)"="ConvPer1k2020","Rec Facilities per 1k (2020)"="RecFacPer1k2020","Farmers Markets per 1k (2018)"="FarmMktPer1k2018"),
+                                            "Demographics"=c("% White (2020)"="PctWhite2020","% Black (2020)"="PctBlack2020","% Hispanic (2020)"="PctHisp2020","% Age 65+ (2020)"="Pct65Plus2020","% Under 18 (2020)"="PctUnder182020")
+                                          ), selected="PovRate2021")
                           )
                       ),
-                      
-                      # Dual choropleth maps only — scatter removed
                       div(class="compare-maps-wrap",
                           div(class="compare-map-panel",
                               span(class="compare-map-label left", textOutput("compareLabelA", inline=TRUE)),
