@@ -30,6 +30,7 @@ aboutTabUI <- function() {
       .about-footer-note { background:#fff; border:1px solid #e8dfd0; border-radius:10px; padding:24px 28px; font-size:.88rem; color:#7a6a57; line-height:1.7; margin-top:12px; }
       .about-footer-note strong { color:#2c2318; }
     ")),
+<<<<<<< HEAD
     div(class="about-page",
         tags$div(style="height:40px;"),
         div(class="stat-strip",
@@ -37,6 +38,34 @@ aboutTabUI <- function() {
             div(class="stat-card", div(class="stat-number","~36%"),  div(class="stat-label","Adults who eat fast food daily")),
             div(class="stat-card", div(class="stat-number","50"),    div(class="stat-label","Top chains analyzed")),
             div(class="stat-card", div(class="stat-number","$331B"), div(class="stat-label","U.S. fast-food industry revenue (2023)"))
+=======
+    
+    # ── Markup ────────────────────────────────────────────────────────────────
+    div(class = "about-page",
+        
+        # Stat strip
+        tags$div(style = "height:40px;"), # spacer
+        
+        tags$h2("Stats About Fast Food"),
+        
+        div(class = "stat-strip",
+            div(class = "stat-card",
+                div(class = "stat-number", "200K+"),
+                div(class = "stat-label",  "Fast-food locations\nacross the U.S.")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "~36%"),
+                div(class = "stat-label",  "Adults who eat\nfast food daily")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "50"),
+                div(class = "stat-label",  "Top chains\nanalyzed")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "$331B"),
+                div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
+            )
+>>>>>>> 5180b2c1b810b043d397c82c31006f62ed19a3fb
         ),
         div(class="about-content",
             div(class="about-section",
@@ -56,8 +85,24 @@ aboutTabUI <- function() {
                     span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
                 )
             ),
+<<<<<<< HEAD
             tags$hr(class="about-divider"),
             div(class="about-section",
+=======
+            
+            tags$hr(class = "about-divider"),
+            
+            
+            # ── About Us
+            div(class = "about-section",
+                tags$h2("About Us"),
+                tags$p("We should add pictures and funfacts about ourselves"
+                  
+                )
+                ),
+            # ── Data sources / footer note
+            div(class = "about-section",
+>>>>>>> 5180b2c1b810b043d397c82c31006f62ed19a3fb
                 tags$h2("Data & Methods"),
                 div(class="about-footer-note",
                     tags$strong("Datasets used in this project include:"),
