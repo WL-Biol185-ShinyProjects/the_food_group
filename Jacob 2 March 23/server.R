@@ -140,13 +140,15 @@ if (!is.null(pov_county_raw)) {
 # ── FOOD ENVIRONMENT ATLAS ───────────────────────────────────
 atlas_raw <- read_csv_safe("2025_food_environment_atlas_data.csv")
 if (!is.null(atlas_raw)) {
+  # Log actual column names for debugging
+  message("Atlas columns: ", paste(names(atlas_raw), collapse=", "))
   # Pad FIPS to 5 chars, replace -8888 sentinel with NA
   atlas_df <- atlas_raw %>%
     mutate(FIPS = formatC(as.integer(FIPS), width=5, flag="0")) %>%
     mutate(across(where(is.numeric), ~ ifelse(. == -8888, NA_real_, .)))
 } else atlas_df <- NULL
 
-# Census region lookup (state abbreviation → region name)
+# Census region lookup (state abbreviation -> region name)
 CENSUS_REGION <- c(
   CT="Northeast", ME="Northeast", MA="Northeast", NH="Northeast",
   RI="Northeast", VT="Northeast", NJ="Northeast", NY="Northeast", PA="Northeast",
@@ -170,7 +172,7 @@ REGION_COLORS <- c(
 
 # Human-readable labels for atlas variables
 ATLAS_LABELS <- c(
-  ObesityRate2022          = "State-Wide Obesity Rate % (2022)",
+  ObesityRate2022          = "Obesity Rate by County % (2023)",
   DiabetesRate2019         = "Diabetes Rate % (2019)",
   PctHSPhysActive2021      = "Physically Active HS % (2021)",
   FoodInsecPct2123         = "Food Insecurity % (2021-23)",
@@ -246,49 +248,20 @@ gradient_color <- function(v, lo, hi, palette_colors, alpha=0.80) {
 OB_PALETTE  <- c("#2ecc71","#f1c40f","#e67e22","#c0392b","#7b0000")
 POV_PALETTE <- c("#aed6f1","#2980b9","#1a5276","#7d3c98","#4a235a")
 
-# Generic sequential palettes keyed to variable "direction"
-# Most vars: higher = more intense (warm)  |  income: higher = better (cool-to-green)
-WARM_PAL  <- c("#fffde4","#fee08b","#fc8d59","#d73027","#7b0000")  # yellow → red
-COOL_PAL  <- c("#f7fbff","#9ecae1","#3182bd","#08519c","#08306b")  # light → dark blue
-GREEN_PAL <- c("#f7fcf5","#a1d99b","#41ab5d","#238b45","#00441b")  # white → dark green
+WARM_PAL  <- c("#fffde4","#fee08b","#fc8d59","#d73027","#7b0000")
+COOL_PAL  <- c("#f7fbff","#9ecae1","#3182bd","#08519c","#08306b")
+GREEN_PAL <- c("#f7fcf5","#a1d99b","#41ab5d","#238b45","#00441b")
 
 var_palette <- function(varname) {
   if (varname %in% c("MedianHHInc2021","PctHSPhysActive2021",
                      "GrocPer1k2020","RecFacPer1k2020","FarmMktPer1k2018")) {
-    GREEN_PAL   # higher = better
+    GREEN_PAL
   } else if (varname %in% c("PctWhite2020","PctBlack2020","PctHisp2020",
                             "Pct65Plus2020","PctUnder182020")) {
     COOL_PAL
   } else {
-    WARM_PAL    # higher = worse / more intense
+    WARM_PAL
   }
-}
-
-make_choropleth <- function(proxy, geo_sf, vals, pal, label_txt, clear=TRUE) {
-  if (clear) proxy <- proxy %>% clearShapes() %>% clearControls()
-  valid <- vals[!is.na(vals)]
-  lo <- if (length(valid)) quantile(valid, .02) else 0
-  hi <- if (length(valid)) quantile(valid, .98) else 1
-  fill_colors <- sapply(vals, gradient_color, lo=lo, hi=hi, palette_colors=pal)
-  proxy %>% addPolygons(
-    data             = geo_sf,
-    fillColor        = fill_colors,
-    fillOpacity      = 0.78,
-    color            = "#555555",
-    weight           = 0.25,
-    opacity          = 0.4,
-    label            = label_txt,
-    labelOptions     = labelOptions(
-      style     = list("font-family"="Space Mono, monospace",
-                       "font-size"  ="11px",
-                       "background" ="rgba(255,255,255,.92)",
-                       "padding"    ="3px 7px"),
-      direction = "auto"
-    ),
-    highlightOptions = highlightOptions(
-      weight=1.2, color="#111", fillOpacity=0.92, bringToFront=TRUE
-    )
-  )
 }
 
 # ── SERVER ────────────────────────────────────────────────────
@@ -619,16 +592,73 @@ server <- function(input, output, session) {
   })
   
   # ── COMPARE TAB ─────────────────────────────────────────────
-  # Shared: load county GeoJSON once (reuse county_sf from above)
-  # Atlas data joined to geo for each variable selection
   
-  # Helper: join atlas column to county_sf and build labels
+  # Helper: detect actual State and County column names in atlas_df
+  atlas_state_col  <- reactive({
+    req(atlas_df)
+    cols <- names(atlas_df)
+    # Try common variants
+    match <- cols[tolower(cols) %in% c("state","state_name","statename","st")]
+    if (length(match)) match[1] else NULL
+  })
+  atlas_county_col <- reactive({
+    req(atlas_df)
+    cols <- names(atlas_df)
+    match <- cols[tolower(cols) %in% c("county","county_name","countyname","area_name","areaname","name")]
+    if (length(match)) match[1] else NULL
+  })
+  
+  # Helper: join atlas column (or ob_county_df for obesity) to county_sf
   atlas_geo <- function(varname) {
-    req(atlas_df, county_sf)
-    col_sym <- as.name(varname)
-    sub_df  <- atlas_df %>% select(FIPS, value = !!col_sym) %>% filter(!is.na(value))
-    geo     <- dplyr::left_join(county_sf, sub_df, by="FIPS")
-    list(geo=geo, vals=geo$value)
+    req(county_sf)
+    if (varname == "ObesityRate2022") {
+      req(ob_county_df)
+      geo <- dplyr::left_join(county_sf, ob_county_df, by="FIPS")
+      list(geo=geo, vals=geo$obesity_pct)
+    } else {
+      req(atlas_df)
+      col_sym <- as.name(varname)
+      sub_df  <- atlas_df %>% select(FIPS, value = !!col_sym) %>% filter(!is.na(value))
+      geo     <- dplyr::left_join(county_sf, sub_df, by="FIPS")
+      list(geo=geo, vals=geo$value)
+    }
+  }
+  
+  # Helper: build hover label; handles ob_county_df (no state col) and atlas vars
+  build_label <- function(geo, vals, varname, atlas_df_ref) {
+    county_name <- if (!is.null(geo$NAME)) geo$NAME else rep("County", nrow(geo))
+    
+    fmt_val <- function(v) {
+      if (is.na(v)) return("No data")
+      if (grepl("Inc", varname)) paste0("$", formatC(as.integer(v), format="d", big.mark=","))
+      else paste0(round(v, 1), "%")
+    }
+    
+    if (varname == "ObesityRate2022") {
+      paste0(ifelse(is.na(county_name), "County", county_name),
+             ": ", sapply(vals, fmt_val), " obesity")
+    } else {
+      state_col <- names(atlas_df_ref)[tolower(names(atlas_df_ref)) %in%
+                                         c("state","state_name","statename","st")]
+      if (length(state_col) > 0) {
+        state_lookup <- atlas_df_ref %>%
+          select(FIPS, state_val = !!as.name(state_col[1])) %>%
+          distinct(FIPS, .keep_all = TRUE)
+        geo_with_state <- dplyr::left_join(
+          data.frame(FIPS = geo$FIPS, stringsAsFactors = FALSE),
+          state_lookup, by = "FIPS"
+        )
+        state_name <- geo_with_state$state_val
+      } else {
+        state_name <- rep(NA_character_, nrow(geo))
+      }
+      location_label <- ifelse(
+        !is.na(state_name),
+        paste0(ifelse(is.na(county_name), "County", county_name), ", ", state_name),
+        ifelse(is.na(county_name), "County", county_name)
+      )
+      paste0(location_label, ": ", sapply(vals, fmt_val))
+    }
   }
   
   # Gradient legend UI helper
@@ -654,22 +684,19 @@ server <- function(input, output, session) {
       setView(lng=-96, lat=38, zoom=3)
   })
   observeEvent(input$compareVarA, {
-    req(county_sf, atlas_df)
+    req(county_sf)
     varname <- input$compareVarA
+    if (varname != "ObesityRate2022") req(atlas_df)
     pal     <- var_palette(varname)
     ag      <- atlas_geo(varname)
     geo     <- ag$geo;  vals <- ag$vals
     valid   <- vals[!is.na(vals)]
     lo      <- if (length(valid)) quantile(valid,.02) else 0
     hi      <- if (length(valid)) quantile(valid,.98) else 1
-    fill_colors <- sapply(vals, gradient_color, lo=lo, hi=hi, palette_colors=pal)
-    lbl <- ATLAS_LABELS[varname] %||% varname
-    fmt_val <- function(v) if (is.na(v)) "No data" else {
-      if (grepl("Inc", varname)) paste0("$", formatC(v, format="d", big.mark=","))
-      else paste0(round(v,1))
-    }
-    label_txt <- paste0(ifelse(is.na(geo$NAME),"County",paste0(geo$NAME,", ",geo$State)),
-                        ": ", sapply(vals, fmt_val))
+    final_pal   <- if (varname == "ObesityRate2022") OB_PALETTE else pal
+    fill_colors <- sapply(vals, gradient_color, lo=lo, hi=hi, palette_colors=final_pal)
+    atlas_ref   <- if (varname == "ObesityRate2022") data.frame() else atlas_df
+    label_txt   <- build_label(geo, vals, varname, atlas_ref)
     leafletProxy("compareMapA") %>% clearShapes() %>%
       addPolygons(data=geo, fillColor=fill_colors, fillOpacity=0.78,
                   color="#555", weight=0.25, opacity=0.35,
@@ -680,9 +707,9 @@ server <- function(input, output, session) {
                   highlightOptions=highlightOptions(weight=1.2,color="#111",fillOpacity=0.92,bringToFront=TRUE))
   }, ignoreNULL=FALSE)
   output$compareLegendA <- renderUI({
-    req(atlas_df)
     varname <- input$compareVarA
-    pal     <- var_palette(varname)
+    if (varname != "ObesityRate2022") req(atlas_df)
+    pal     <- if (varname == "ObesityRate2022") OB_PALETTE else var_palette(varname)
     ag      <- atlas_geo(varname)
     grad_legend_ui(varname, pal, ag$vals)
   })
@@ -697,21 +724,19 @@ server <- function(input, output, session) {
       setView(lng=-96, lat=38, zoom=3)
   })
   observeEvent(input$compareVarB, {
-    req(county_sf, atlas_df)
+    req(county_sf)
     varname <- input$compareVarB
+    if (varname != "ObesityRate2022") req(atlas_df)
     pal     <- var_palette(varname)
     ag      <- atlas_geo(varname)
     geo     <- ag$geo;  vals <- ag$vals
     valid   <- vals[!is.na(vals)]
     lo      <- if (length(valid)) quantile(valid,.02) else 0
     hi      <- if (length(valid)) quantile(valid,.98) else 1
-    fill_colors <- sapply(vals, gradient_color, lo=lo, hi=hi, palette_colors=pal)
-    fmt_val <- function(v) if (is.na(v)) "No data" else {
-      if (grepl("Inc", varname)) paste0("$", formatC(v, format="d", big.mark=","))
-      else paste0(round(v,1))
-    }
-    label_txt <- paste0(ifelse(is.na(geo$NAME),"County",paste0(geo$NAME,", ",geo$State)),
-                        ": ", sapply(vals, fmt_val))
+    final_pal   <- if (varname == "ObesityRate2022") OB_PALETTE else pal
+    fill_colors <- sapply(vals, gradient_color, lo=lo, hi=hi, palette_colors=final_pal)
+    atlas_ref   <- if (varname == "ObesityRate2022") data.frame() else atlas_df
+    label_txt   <- build_label(geo, vals, varname, atlas_ref)
     leafletProxy("compareMapB") %>% clearShapes() %>%
       addPolygons(data=geo, fillColor=fill_colors, fillOpacity=0.78,
                   color="#555", weight=0.25, opacity=0.35,
@@ -722,74 +747,12 @@ server <- function(input, output, session) {
                   highlightOptions=highlightOptions(weight=1.2,color="#111",fillOpacity=0.92,bringToFront=TRUE))
   }, ignoreNULL=FALSE)
   output$compareLegendB <- renderUI({
-    req(atlas_df)
     varname <- input$compareVarB
-    pal     <- var_palette(varname)
+    if (varname != "ObesityRate2022") req(atlas_df)
+    pal     <- if (varname == "ObesityRate2022") OB_PALETTE else var_palette(varname)
     ag      <- atlas_geo(varname)
     grad_legend_ui(varname, pal, ag$vals)
   })
   
-  # ── Scatter: A vs B per county ────────────────────
-  output$compareScatterTitle <- renderText({
-    la <- ATLAS_LABELS[input$compareVarA] %||% input$compareVarA
-    lb <- ATLAS_LABELS[input$compareVarB] %||% input$compareVarB
-    paste(la, "vs.", lb, "— by County")
-  })
-  output$compareScatter <- renderPlotly({
-    req(atlas_df)
-    va <- input$compareVarA
-    vb <- input$compareVarB
-    la <- ATLAS_LABELS[va] %||% va
-    lb <- ATLAS_LABELS[vb] %||% vb
-    
-    plot_df <- atlas_df %>%
-      select(FIPS, State, County, x=all_of(va), y=all_of(vb)) %>%
-      filter(!is.na(x), !is.na(y)) %>%
-      mutate(
-        region = CENSUS_REGION[State] %||% "Other",
-        color  = REGION_COLORS[region] %||% "#888888",
-        hover  = paste0("<b>", County, ", ", State, "</b><br>",
-                        la, ": ", round(x,1), "<br>",
-                        lb, ": ", round(y,1))
-      )
-    
-    # Correlation
-    cor_val <- if (nrow(plot_df) > 10)
-      round(cor(plot_df$x, plot_df$y, use="complete.obs"), 3) else NA
-    
-    regions <- unique(plot_df$region)
-    p <- plot_ly()
-    for (rg in regions) {
-      d <- plot_df %>% filter(region == rg)
-      p <- p %>% add_trace(
-        data=d, x=~x, y=~y, type="scatter", mode="markers",
-        name=rg,
-        marker=list(size=5, color=REGION_COLORS[rg], opacity=0.55,
-                    line=list(color="white", width=0.3)),
-        hovertext=~hover, hoverinfo="text"
-      )
-    }
-    
-    subtitle_txt <- if (!is.na(cor_val))
-      paste0("Pearson r = ", cor_val, " · n = ", nrow(plot_df), " counties")
-    else paste0("n = ", nrow(plot_df), " counties")
-    
-    p %>% layout(
-      paper_bgcolor = "#faf7f2",
-      plot_bgcolor  = "white",
-      xaxis = list(title=la, gridcolor="#ede8df", tickfont=list(size=11), zeroline=FALSE),
-      yaxis = list(title=lb, gridcolor="#ede8df", tickfont=list(size=11), zeroline=FALSE),
-      legend= list(title=list(text="Region"), orientation="h", y=1.05,
-                   font=list(size=12)),
-      margin= list(l=70, r=20, t=50, b=60),
-      font  = list(family="DM Sans", size=13),
-      annotations = list(list(
-        x=0.5, y=1.04, xref="paper", yref="paper",
-        text=subtitle_txt, showarrow=FALSE,
-        font=list(family="Space Mono", size=11, color="#8c7355")
-      ))
-    ) %>%
-      config(displayModeBar=FALSE)
-  })
   
 }

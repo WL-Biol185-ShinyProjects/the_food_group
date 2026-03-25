@@ -175,7 +175,7 @@ aboutTabUI <- function() {
     
     # ── Markup ────────────────────────────────────────────────────────────────
     div(class = "about-page",
-      
+        
         # Stat strip
         tags$div(style = "height:40px;"),  # spacer
         div(class = "stat-strip",
@@ -390,10 +390,6 @@ ui <- fluidPage(
       .compare-grad-bar { height:10px; border-radius:2px; margin:.3rem 0 .2rem; }
       .compare-grad-labels { display:flex; justify-content:space-between; font-family:var(--mono); font-size:.63rem; color:var(--brown); }
 
-      .compare-scatter-box { background:white; border:1px solid var(--paper); padding:1.4rem; }
-      .compare-scatter-title { font-weight:700; font-size:.9rem; margin-bottom:.2rem; }
-      .compare-scatter-sub { font-family:var(--mono); font-size:.7rem; color:var(--brown); margin-bottom:1rem; }
-
       .dash-footer { background:var(--dark); color:rgba(250,247,242,.4); font-family:var(--mono); font-size:.7rem; padding:1.5rem 3rem; display:flex; justify-content:space-between; align-items:center; margin-top:2rem; }
       .dash-footer strong { color:var(--cream); }
 
@@ -420,7 +416,7 @@ ui <- fluidPage(
              
              tabPanel("About",
                       aboutTabUI()
-                      ),
+             ),
              
              tabPanel("Chains",
                       div(class="section-header",
@@ -553,7 +549,7 @@ ui <- fluidPage(
                               selectInput("compareVarA", NULL, width="100%",
                                           choices = list(
                                             "Health" = c(
-                                              "Obesity Rate % (2022)"              = "ObesityRate2022",
+                                              "Obesity Rate by County % (2023)"    = "ObesityRate2022",
                                               "Diabetes Rate % (2019)"             = "DiabetesRate2019",
                                               "Physically Active HS % (2021)"      = "PctHSPhysActive2021"
                                             ),
@@ -597,7 +593,7 @@ ui <- fluidPage(
                               selectInput("compareVarB", NULL, width="100%",
                                           choices = list(
                                             "Health" = c(
-                                              "Obesity Rate % (2022)"              = "ObesityRate2022",
+                                              "Obesity Rate by County % (2023)"    = "ObesityRate2022",
                                               "Diabetes Rate % (2019)"             = "DiabetesRate2019",
                                               "Physically Active HS % (2021)"      = "PctHSPhysActive2021"
                                             ),
@@ -637,7 +633,7 @@ ui <- fluidPage(
                           )
                       ),
                       
-                      # Dual choropleth maps
+                      # Dual choropleth maps only — scatter removed
                       div(class="compare-maps-wrap",
                           div(class="compare-map-panel",
                               span(class="compare-map-label left", textOutput("compareLabelA", inline=TRUE)),
@@ -653,13 +649,6 @@ ui <- fluidPage(
                               br(),
                               uiOutput("compareLegendB")
                           )
-                      ),
-                      
-                      # Scatter: A vs B, one point per county
-                      div(class="compare-scatter-box",
-                          div(class="compare-scatter-title", textOutput("compareScatterTitle")),
-                          div(class="compare-scatter-sub", "Each point = one county · hover for details · color = U.S. Census region"),
-                          plotlyOutput("compareScatter", height="420px")
                       )
              )
   ),
