@@ -177,7 +177,10 @@ aboutTabUI <- function() {
     div(class = "about-page",
         
         # Stat strip
-        tags$div(style = "height:40px;"),  # spacer
+        tags$div(style = "height:40px;"), # spacer
+        
+        tags$h2("Stats About Fast Food"),
+        
         div(class = "stat-strip",
             div(class = "stat-card",
                 div(class = "stat-number", "200K+"),
@@ -243,6 +246,14 @@ aboutTabUI <- function() {
             
             tags$hr(class = "about-divider"),
             
+            
+            # ── About Us
+            div(class = "about-section",
+                tags$h2("About Us"),
+                tags$p("We should add pictures and funfacts about ourselves"
+                  
+                )
+                ),
             # ── Data sources / footer note
             div(class = "about-section",
                 tags$h2("Data & Methods"),
