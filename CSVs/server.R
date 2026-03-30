@@ -148,33 +148,6 @@ if (!is.null(atlas_raw)) {
     mutate(across(where(is.numeric), ~ ifelse(. == -8888, NA_real_, .)))
 } else atlas_df <- NULL
 
-# ── STATE-LEVEL ATLAS AGGREGATION FOR DEMOGRAPHICS ──────────
-# Pre-aggregate atlas county data to state level at load time
-atlas_state_df <- NULL
-if (!is.null(atlas_df)) {
-  state_col <- names(atlas_df)[tolower(names(atlas_df)) %in% c("state","state_name","statename","st")]
-  if (length(state_col) > 0) {
-    needed_cols <- c(state_col[1], "FoodInsecPct2123", "MedianHHInc2021", "FFRPer1k2020")
-    available   <- needed_cols[needed_cols %in% names(atlas_df)]
-    if (length(available) == 4) {
-      atlas_state_df <- atlas_df %>%
-        select(all_of(available)) %>%
-        rename(state_name = !!state_col[1],
-               food_insec = FoodInsecPct2123,
-               median_inc = MedianHHInc2021,
-               ff_per_1k  = FFRPer1k2020) %>%
-        filter(!is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k)) %>%
-        group_by(state_name) %>%
-        summarise(
-          food_insec = mean(food_insec, na.rm=TRUE),
-          median_inc = mean(median_inc, na.rm=TRUE),
-          ff_per_1k  = mean(ff_per_1k,  na.rm=TRUE),
-          .groups = "drop"
-        )
-    }
-  }
-}
-
 CENSUS_REGION <- c(
   CT="Northeast", ME="Northeast", MA="Northeast", NH="Northeast",
   RI="Northeast", VT="Northeast", NJ="Northeast", NY="Northeast", PA="Northeast",
@@ -265,7 +238,7 @@ var_palette <- function(varname) {
 
 # ── SERVER ────────────────────────────────────────────────────
 server <- function(input, output, session) {
-
+  
   # ── CHAINS ──────────────────────────────────────────────────
   output$salesChart <- renderPlotly({
     req(chains_df)
@@ -279,7 +252,7 @@ server <- function(input, output, session) {
              margin=list(l=130,r=30,t=20,b=50), font=list(family="DM Sans", size=13)) %>%
       config(displayModeBar=FALSE)
   })
-
+  
   output$chainScatterChart <- renderPlotly({
     req(chains_df)
     plot_ly(chains_df, x=~avg_unit, y=~sales, text=~name, type="scatter", mode="markers",
@@ -293,7 +266,7 @@ server <- function(input, output, session) {
              margin=list(l=70,r=30,t=20,b=60), font=list(family="DM Sans", size=13)) %>%
       config(displayModeBar=FALSE)
   })
-
+  
   # ── NUTRITION ───────────────────────────────────────────────
   output$nutrCards <- renderUI({
     req(nutr_summary)
@@ -310,7 +283,7 @@ server <- function(input, output, session) {
     })
     div(class="nutr-grid", tagList(cards))
   })
-
+  
   nutr_bar <- function(df, col, color_fn, fmt) {
     d <- df %>% arrange(desc(.data[[col]]))
     plot_ly(d, x=d[[col]], y=~reorder(restaurant, d[[col]]), type="bar", orientation="h",
@@ -326,7 +299,7 @@ server <- function(input, output, session) {
   output$sodChart  <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"sodium",    function(v) ifelse(v>1400,"#c0392b",ifelse(v>1100,"#e67e22","#16a085")), " mg") })
   output$protChart <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"protein",   function(v) "#27ae60", "g") })
   output$fatChart  <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"total_fat", function(v) ifelse(v>30,"#c0392b",ifelse(v>20,"#e67e22","#27ae60")), "g") })
-
+  
   # ── OBESITY ─────────────────────────────────────────────────
   output$obHighChart <- renderPlotly({
     req(ob_df)
@@ -359,7 +332,7 @@ server <- function(input, output, session) {
       select(Rank, State=state, `Obesity Rate`) %>%
       datatable(rownames=FALSE, options=list(pageLength=25), class="stripe hover")
   })
-
+  
   # ── POVERTY ─────────────────────────────────────────────────
   output$povChart <- renderPlotly({
     req(pov_df)
@@ -386,141 +359,142 @@ server <- function(input, output, session) {
              yaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df", tickfont=list(size=12)),
              margin=list(l=60,r=20,t=20,b=60), font=list(family="DM Sans", size=13))
   })
-
-  # ── DEMOGRAPHICS — state-level bubble chart ──────────────────
+  
+  # ── DEMOGRAPHICS — bubble plot ───────────────────────────────
   output$demoBubbleChart <- renderPlotly({
-    req(atlas_state_df, race_df)
-
-    race_group <- input$raceGroup %||% "white"
-
-    # Race data: clean state names, pick selected column
-    race_col <- switch(race_group,
-      "white"    = "white",
-      "black"    = "black",
-      "hispanic" = "hispanic"
-    )
-    race_label <- switch(race_group,
-      "white"    = "% White",
-      "black"    = "% Black",
-      "hispanic" = "% Hispanic"
-    )
-    # Palette: low pct = light, high pct = strong colour per group
-    bubble_palette <- switch(race_group,
-      "white"    = c("#dce8fb","#4e9af1","#1a4f9c"),
-      "black"    = c("#fce8e0","#e05c30","#7a1800"),
-      "hispanic" = c("#e0f5e5","#44b864","#145a28")
-    )
-
-    race_clean <- race_df %>%
-      filter(state != "United States", !is.na(.data[[race_col]])) %>%
-      mutate(
-        abbr     = STATE_ABBR[state],
-        race_pct = round(as.numeric(.data[[race_col]]) * 100, 1)
-      ) %>%
-      filter(!is.na(abbr)) %>%
-      select(state, abbr, race_pct)
-
-    # Join atlas state aggregates with race data
-    # atlas_state_df uses state abbreviations or full names — try both
-    merged <- atlas_state_df %>%
-      left_join(race_clean, by=c("state_name"="abbr"))
-
-    # If join failed (state_name is full names), try full name join
-    if (all(is.na(merged$race_pct))) {
-      merged <- atlas_state_df %>%
-        left_join(race_clean, by=c("state_name"="state"))
-    }
-
-    merged <- merged %>%
-      filter(!is.na(race_pct), !is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k))
-
-    if (nrow(merged) == 0) {
-      message("No rows in demographics merged data — check state name matching")
+    req(atlas_df)
+    
+    opacity_val <- input$bubbleOpacity %||% 0.45
+    
+    needed <- c("FIPS","FoodInsecPct2123","MedianHHInc2021","FFRPer1k2020",
+                "PctWhite2020","PctBlack2020","PctHisp2020")
+    missing_cols <- setdiff(needed, names(atlas_df))
+    if (length(missing_cols) > 0) {
+      message("Missing atlas cols for bubble chart: ", paste(missing_cols, collapse=", "))
       return(NULL)
     }
-
-    # Bubble size scaled by ff_per_1k
-    ff_min <- min(merged$ff_per_1k, na.rm=TRUE)
-    ff_max <- max(merged$ff_per_1k, na.rm=TRUE)
-    bubble_sizes <- 10 + 34 * (merged$ff_per_1k - ff_min) / max(ff_max - ff_min, 1e-6)
-
-    # Bubble color: interpolate palette by race_pct
-    pct_min <- min(merged$race_pct, na.rm=TRUE)
-    pct_max <- max(merged$race_pct, na.rm=TRUE)
-    bubble_colors <- sapply(merged$race_pct, function(v) {
-      t  <- max(0, min(1, (v - pct_min) / max(pct_max - pct_min, 1e-6)))
-      n  <- length(bubble_palette)
-      idx_f <- t * (n-1) + 1
-      il <- floor(idx_f); ih <- ceiling(idx_f)
-      fr <- idx_f - il
-      cl <- col2rgb(bubble_palette[il]); ch <- col2rgb(bubble_palette[ih])
-      sprintf("rgb(%d,%d,%d)",
-              round(cl[1]+fr*(ch[1]-cl[1])),
-              round(cl[2]+fr*(ch[2]-cl[2])),
-              round(cl[3]+fr*(ch[3]-cl[3])))
-    })
-
-    # Display label: prefer abbr, fall back to state_name
-    display_label <- ifelse(!is.na(merged$abbr), merged$abbr, merged$state_name)
-    state_display  <- ifelse(!is.na(merged$state), merged$state, merged$state_name)
-
-    hover_txt <- paste0(
-      "<b>", state_display, " (", display_label, ")</b><br>",
-      race_label, ": <b>", merged$race_pct, "%</b><br>",
-      "Food Insecurity: <b>", round(merged$food_insec, 1), "%</b><br>",
-      "Median HH Income: <b>$", formatC(as.integer(merged$median_inc), format="d", big.mark=","), "</b><br>",
-      "Fast Food / 1k people: <b>", round(merged$ff_per_1k, 2), "</b>"
-    )
-
-    plot_ly(
-      data      = merged,
-      x         = ~food_insec,
-      y         = ~median_inc,
-      type      = "scatter",
-      mode      = "markers+text",
-      text      = display_label,
-      textposition = "top center",
-      textfont  = list(size=10, color="#555555"),
-      marker    = list(
-        size    = bubble_sizes,
-        color   = bubble_colors,
-        opacity = 0.85,
-        line    = list(color="rgba(255,255,255,0.7)", width=1.2)
-      ),
-      hovertext = hover_txt,
-      hoverinfo = "text"
-    ) %>%
-    layout(
+    
+    name_col  <- names(atlas_df)[tolower(names(atlas_df)) %in%
+                                   c("county","county_name","countyname","area_name","areaname","name")]
+    state_col <- names(atlas_df)[tolower(names(atlas_df)) %in%
+                                   c("state","state_name","statename","st")]
+    
+    base_cols <- needed
+    if (length(name_col)  > 0) base_cols <- c(base_cols, name_col[1])
+    if (length(state_col) > 0) base_cols <- c(base_cols, state_col[1])
+    
+    base <- atlas_df %>%
+      select(all_of(base_cols)) %>%
+      rename(
+        food_insec = FoodInsecPct2123,
+        median_inc = MedianHHInc2021,
+        ff_per_1k  = FFRPer1k2020,
+        pct_white  = PctWhite2020,
+        pct_black  = PctBlack2020,
+        pct_hisp   = PctHisp2020
+      )
+    
+    if (length(name_col)  > 0) base <- base %>% rename(county_name = !!name_col[1])  else base$county_name <- "County"
+    if (length(state_col) > 0) base <- base %>% rename(state_name  = !!state_col[1]) else base$state_name  <- ""
+    
+    base <- base %>%
+      filter(!is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k))
+    
+    # Pivot: one row per county × race group; keep groups with >5% share
+    race_long <- base %>%
+      pivot_longer(
+        cols      = c(pct_white, pct_black, pct_hisp),
+        names_to  = "race_col",
+        values_to = "race_pct"
+      ) %>%
+      mutate(race_group = case_when(
+        race_col == "pct_white" ~ "White",
+        race_col == "pct_black" ~ "Black",
+        race_col == "pct_hisp"  ~ "Hispanic",
+        TRUE ~ "Other"
+      )) %>%
+      filter(!is.na(race_pct), race_pct > 5)
+    
+    if (nrow(race_long) == 0) {
+      message("No rows after race filter — check atlas column names"); return(NULL)
+    }
+    
+    # Bubble size: FF per 1k scaled to pixel radius
+    ff_min <- quantile(race_long$ff_per_1k, 0.02, na.rm=TRUE)
+    ff_max <- quantile(race_long$ff_per_1k, 0.98, na.rm=TRUE)
+    size_fn <- function(x) rescale(pmin(pmax(x, ff_min), ff_max), to=c(4, 22), from=c(ff_min, ff_max))
+    
+    race_colors <- c("White"="#4e9af1", "Black"="#e05c30", "Hispanic"="#44b864")
+    
+    hover_fn <- function(d) {
+      paste0(
+        "<b>", d$county_name,
+        ifelse(d$state_name != "", paste0(", ", d$state_name), ""),
+        "</b><br>",
+        "Race group: <b>", d$race_group, "</b> (", round(d$race_pct, 1), "% of county)<br>",
+        "Food Insecurity: <b>", round(d$food_insec, 1), "%</b><br>",
+        "Median HH Income: <b>$", formatC(as.integer(d$median_inc), format="d", big.mark=","), "</b><br>",
+        "Fast Food / 1k people: <b>", round(d$ff_per_1k, 2), "</b>"
+      )
+    }
+    
+    p <- plot_ly()
+    for (grp in c("White","Black","Hispanic")) {
+      d    <- race_long %>% filter(race_group == grp)
+      htxt <- hover_fn(d)
+      p <- p %>% add_trace(
+        data      = d,
+        x         = ~food_insec,
+        y         = ~median_inc,
+        type      = "scatter",
+        mode      = "markers",
+        name      = grp,
+        marker    = list(
+          size    = size_fn(d$ff_per_1k),
+          color   = race_colors[grp],
+          opacity = opacity_val,
+          line    = list(color="rgba(255,255,255,0.4)", width=0.5)
+        ),
+        hovertext = htxt,
+        hoverinfo = "text"
+      )
+    }
+    
+    p %>% layout(
       paper_bgcolor = "#faf7f2",
       plot_bgcolor  = "white",
       xaxis = list(
         title     = "Food Insecurity Rate (%)",
         gridcolor = "#ede8df",
         tickfont  = list(size=12),
-        zeroline  = FALSE,
-        fixedrange = TRUE
+        zeroline  = FALSE
       ),
       yaxis = list(
         title      = "Median Household Income ($)",
         gridcolor  = "#ede8df",
         tickfont   = list(size=12),
         tickformat = "$,",
-        zeroline   = FALSE,
-        fixedrange = TRUE
+        zeroline   = FALSE
+      ),
+      legend = list(
+        title       = list(text="<b>Race Group</b><br><sup>(>5% share)</sup>"),
+        orientation = "v",
+        x           = 1.01,
+        y           = 0.99,
+        font        = list(size=13)
       ),
       annotations = list(list(
-        text      = paste0("Bubble size = fast food per 1k people  \u00b7  Color intensity = ",
-                           race_label, " share  \u00b7  State averages from county-level atlas data"),
-        x=0.5, y=-0.11, xref="paper", yref="paper", showarrow=FALSE,
+        text      = "Bubble size = fast food restaurants per 1k people  \u00b7  Color = dominant race group present at >5% county share  \u00b7  Hover for details",
+        x=0.5, y=-0.12, xref="paper", yref="paper", showarrow=FALSE,
         font=list(size=10.5, color="#8c7355", family="Space Mono, monospace"),
         xanchor="center"
       )),
-      margin = list(l=80, r=40, t=30, b=80),
+      margin = list(l=80, r=140, t=30, b=80),
       font   = list(family="DM Sans", size=13)
     ) %>%
-    config(displayModeBar=FALSE)
+      config(displayModeBar=FALSE)
   })
-
+  
   # ── MAP ──────────────────────────────────────────────────────
   all_chains_available <- reactive({
     if (!is.null(map_df)) sort(unique(map_df$chain[map_df$chain != "Other"]))
@@ -588,13 +562,13 @@ server <- function(input, output, session) {
              "Hover a county for its value")
     )
   })
-
+  
   county_sf <- tryCatch({
     if (!requireNamespace("sf", quietly=TRUE)) stop("sf not installed")
     sf::read_sf("https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json") %>%
       dplyr::rename(FIPS = id)
   }, error=function(e) { message("county sf load failed: ", e$message); NULL })
-
+  
   output$ffMap <- renderLeaflet({
     leaflet(options=leafletOptions(preferCanvas=TRUE, zoomControl=TRUE)) %>%
       addProviderTiles(providers$CartoDB.Positron,    group="Light") %>%
@@ -605,7 +579,7 @@ server <- function(input, output, session) {
                        options=layersControlOptions(collapsed=TRUE)) %>%
       addScaleBar(position="bottomleft")
   })
-
+  
   observeEvent(list(map_filtered(), input$mapOverlay), {
     df    <- map_filtered()
     ov    <- input$mapOverlay %||% "none"
@@ -651,7 +625,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   # ── COMPARE TAB ─────────────────────────────────────────────
   atlas_state_col  <- reactive({
     req(atlas_df); cols <- names(atlas_df)
@@ -663,7 +637,7 @@ server <- function(input, output, session) {
     match <- cols[tolower(cols) %in% c("county","county_name","countyname","area_name","areaname","name")]
     if (length(match)) match[1] else NULL
   })
-
+  
   atlas_geo <- function(varname) {
     req(county_sf)
     if (varname == "ObesityRate2022") {
@@ -678,7 +652,7 @@ server <- function(input, output, session) {
       list(geo=geo, vals=geo$value)
     }
   }
-
+  
   build_label <- function(geo, vals, varname, atlas_df_ref) {
     county_name <- if (!is.null(geo$NAME)) geo$NAME else rep("County", nrow(geo))
     fmt_val <- function(v) {
@@ -701,7 +675,7 @@ server <- function(input, output, session) {
       paste0(location_label, ": ", sapply(vals, fmt_val))
     }
   }
-
+  
   grad_legend_ui <- function(varname, pal, vals) {
     valid <- vals[!is.na(vals)]
     lo <- if (length(valid)) round(quantile(valid,.02),1) else 0
@@ -713,7 +687,8 @@ server <- function(input, output, session) {
       div(class="compare-grad-labels", span(lo), span(paste0(hi,"+")))
     )
   }
-
+  
+  # Left map
   output$compareLabelA <- renderText({ ATLAS_LABELS[input$compareVarA] %||% input$compareVarA })
   output$compareMapA <- renderLeaflet({
     leaflet(options=leafletOptions(preferCanvas=TRUE, zoomControl=FALSE)) %>%
@@ -742,7 +717,8 @@ server <- function(input, output, session) {
     pal <- if (varname == "ObesityRate2022") OB_PALETTE else var_palette(varname)
     grad_legend_ui(varname, pal, atlas_geo(varname)$vals)
   })
-
+  
+  # Right map
   output$compareLabelB <- renderText({ ATLAS_LABELS[input$compareVarB] %||% input$compareVarB })
   output$compareMapB <- renderLeaflet({
     leaflet(options=leafletOptions(preferCanvas=TRUE, zoomControl=FALSE)) %>%

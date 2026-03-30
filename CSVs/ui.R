@@ -283,26 +283,28 @@ ui <- fluidPage(
       div(class="section-header",
           div(div(class="section-label","Demographics · Food Environment Atlas 2025"),
               div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
-          div(class="section-meta","51 U.S. states · Bubble size = Fast Food per 1k people")
+          div(class="section-meta","3,000+ U.S. counties · Bubble size = Fast Food per 1k people")
       ),
       p(class="page-blurb",
         "Research consistently links fast food density to higher rates of obesity and diet-related illness, particularly in lower-income and minority communities where access to fresh, affordable food is limited. At the same time, poverty shapes food choices in complex ways: fast food is often the most accessible and affordable option available."),
       div(class="bubble-controls",
           div(
-            tags$label("Race Group", class="control-label"),
-            selectInput("raceGroup", label=NULL,
-                        choices=c("% White"="white", "% Black"="black", "% Hispanic"="hispanic"),
-                        selected="white", width="200px")
+            tags$label("Bubble Opacity", class="control-label"),
+            sliderInput("bubbleOpacity", label=NULL, min=0.05, max=1.0, value=0.45, step=0.05, width="260px", ticks=FALSE)
           ),
           div(class="bubble-legend",
-              tags$span(style="font-family:var(--mono);font-size:.7rem;color:var(--brown);",
-                        HTML("Bubble size = fast food / 1k people &nbsp;&middot;&nbsp; Color intensity = % share of selected race &nbsp;&middot;&nbsp; Hover for details"))
+              tags$span(style="font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--brown);margin-right:.4rem;", "Race group:"),
+              div(class="bubble-legend-item", div(class="bubble-legend-swatch", style="background:#4e9af1;"), span("White")),
+              div(class="bubble-legend-item", div(class="bubble-legend-swatch", style="background:#e05c30;"), span("Black")),
+              div(class="bubble-legend-item", div(class="bubble-legend-swatch", style="background:#44b864;"), span("Hispanic")),
+              div(style="margin-left:1rem; font-size:.7rem; color:var(--brown);",
+                  HTML("Only counties where group &gt; 5% shown &nbsp;&middot;&nbsp; Bubble size = fast food / 1k people"))
           )
       ),
       div(class="chart-box",
-          div(class="chart-box-title", "Food Insecurity vs. Median Household Income — State Level"),
-          div(class="chart-box-sub", "X = food insecurity rate \u00b7 Y = median household income \u00b7 Size = fast food per 1k \u00b7 Color = % selected race group \u00b7 Hover for state details"),
-          plotlyOutput("demoBubbleChart", height="620px")
+          div(class="chart-box-title", "Food Insecurity vs. Median Household Income — County Level"),
+          div(class="chart-box-sub", "X = food insecurity rate \u00b7 Y = median household income \u00b7 Size = fast food restaurants per 1k \u00b7 Color = race group \u00b7 Hover for details"),
+          plotlyOutput("demoBubbleChart", height="660px")
       )
     ),
 

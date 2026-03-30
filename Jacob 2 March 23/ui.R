@@ -25,6 +25,7 @@ aboutTabUI <- function() {
       .about-footer-note strong { color:#2c2318; }
     ")),
     div(class="about-page",
+<<<<<<< HEAD
         # Stat strip
         tags$div(style = "height:40px;"), # spacer
         
@@ -47,8 +48,15 @@ aboutTabUI <- function() {
                 div(class = "stat-number", "$331B"),
                 div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
             )
+=======
+        tags$div(style="height:40px;"),
+        div(class="stat-strip",
+            div(class="stat-card", div(class="stat-number","200K+"), div(class="stat-label","Fast-food locations across the U.S.")),
+            div(class="stat-card", div(class="stat-number","~36%"),  div(class="stat-label","Adults who eat fast food daily")),
+            div(class="stat-card", div(class="stat-number","50"),    div(class="stat-label","Top chains analyzed")),
+            div(class="stat-card", div(class="stat-number","$331B"), div(class="stat-label","U.S. fast-food industry revenue (2023)"))
+>>>>>>> e9d56bdd6891771d5ba2c2d3cf2c3a5dc540877e
         ),
-        
         div(class="about-content",
             
             # ── Centered image ─────────────────────────────────
@@ -241,41 +249,12 @@ ui <- fluidPage(
       .irs--shiny .irs-bar { background:var(--accent) !important; }
       .irs--shiny .irs-handle { border-color:var(--accent) !important; }
 
-      /* opacity slider row */
-      .bubble-controls {
-        display: flex;
-        align-items: center;
-        gap: 2rem;
-        margin-bottom: 1rem;
-        padding: .8rem 1.2rem;
-        background: var(--warm);
-        border: 1px solid var(--paper);
-        flex-wrap: wrap;
-      }
-      .bubble-controls .control-label {
-        font-family: var(--mono);
-        font-size: .72rem;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: var(--brown);
-        margin-bottom: 0;
-        white-space: nowrap;
-      }
-      .bubble-controls .irs { margin-bottom: 0; }
-      .bubble-legend {
-        display: flex;
-        gap: 1.4rem;
-        align-items: center;
-        flex-wrap: wrap;
-        font-size: .78rem;
-        font-family: var(--mono);
-        color: var(--brown);
-      }
+      .bubble-controls { display:flex; align-items:center; gap:2rem; margin-bottom:1rem; padding:.8rem 1.2rem; background:var(--warm); border:1px solid var(--paper); flex-wrap:wrap; }
+      .bubble-controls .control-label { font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--brown); margin-bottom:0; white-space:nowrap; }
+      .bubble-controls .irs { margin-bottom:0; }
+      .bubble-legend { display:flex; gap:1.4rem; align-items:center; flex-wrap:wrap; font-size:.78rem; font-family:var(--mono); color:var(--brown); }
       .bubble-legend-item { display:flex; align-items:center; gap:.4rem; }
-      .bubble-legend-swatch {
-        width: 13px; height: 13px; border-radius: 50%;
-        border: 1px solid rgba(0,0,0,.12); flex-shrink:0;
-      }
+      .bubble-legend-swatch { width:13px; height:13px; border-radius:50%; border:1px solid rgba(0,0,0,.12); flex-shrink:0; }
 
       .overlay-legend { background:white; border:1px solid var(--paper); padding:.8rem 1rem; margin-top:.8rem; font-size:.75rem; font-family:var(--mono); }
       .gradient-legend { margin-top:.5rem; }
@@ -393,39 +372,23 @@ ui <- fluidPage(
                               div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
                           div(class="section-meta","3,000+ U.S. counties · Bubble size = Fast Food per 1k people")
                       ),
-                      
-                      # Opacity slider + colour legend in one control bar
                       div(class="bubble-controls",
                           div(
                             tags$label("Bubble Opacity", class="control-label"),
-                            sliderInput("bubbleOpacity",
-                                        label  = NULL,
-                                        min    = 0.05, max = 1.0,
-                                        value  = 0.45, step = 0.05,
-                                        width  = "260px",
-                                        ticks  = FALSE)
+                            sliderInput("bubbleOpacity", label=NULL, min=0.05, max=1.0, value=0.45, step=0.05, width="260px", ticks=FALSE)
                           ),
                           div(class="bubble-legend",
                               tags$span(style="font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--brown);margin-right:.4rem;", "Race group:"),
-                              div(class="bubble-legend-item",
-                                  div(class="bubble-legend-swatch", style="background:#4e9af1;"),
-                                  span("White")),
-                              div(class="bubble-legend-item",
-                                  div(class="bubble-legend-swatch", style="background:#e05c30;"),
-                                  span("Black")),
-                              div(class="bubble-legend-item",
-                                  div(class="bubble-legend-swatch", style="background:#44b864;"),
-                                  span("Hispanic")),
+                              div(class="bubble-legend-item", div(class="bubble-legend-swatch", style="background:#4e9af1;"), span("White")),
+                              div(class="bubble-legend-item", div(class="bubble-legend-swatch", style="background:#e05c30;"), span("Black")),
+                              div(class="bubble-legend-item", div(class="bubble-legend-swatch", style="background:#44b864;"), span("Hispanic")),
                               div(style="margin-left:1rem; font-size:.7rem; color:var(--brown);",
                                   HTML("Only counties where group &gt; 5% shown &nbsp;&middot;&nbsp; Bubble size = fast food / 1k people"))
                           )
                       ),
-                      
                       div(class="chart-box",
-                          div(class="chart-box-title",
-                              "Food Insecurity vs. Median Household Income — County Level"),
-                          div(class="chart-box-sub",
-                              "X = food insecurity rate  \u00b7  Y = median household income  \u00b7  Size = fast food restaurants per 1k  \u00b7  Color = race group  \u00b7  Hover for details"),
+                          div(class="chart-box-title", "Food Insecurity vs. Median Household Income — County Level"),
+                          div(class="chart-box-sub", "X = food insecurity rate  \u00b7  Y = median household income  \u00b7  Size = fast food restaurants per 1k  \u00b7  Color = race group  \u00b7  Hover for details"),
                           plotlyOutput("demoBubbleChart", height="660px")
                       )
              ),
