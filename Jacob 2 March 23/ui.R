@@ -319,6 +319,8 @@ ui <- fluidPage(
                               div(class="section-title","What's Really in Your Meal?")),
                           div(class="section-meta","Source: FDA · 515 Menu Items")
                       ),
+                      p(class="page-blurb",
+                        "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
                       tabsetPanel(
                         tabPanel("By Restaurant", br(), uiOutput("nutrCards")),
                         tabPanel("Calories & Sodium", br(),
@@ -359,6 +361,8 @@ ui <- fluidPage(
                               div(class="section-title","Poverty Rates by State")),
                           div(class="section-meta","Source: USDA SAIPE · 2023")
                       ),
+                      p(class="page-blurb",
+                        "Poverty and poor health outcomes tend to have correlation in America. States with the highest poverty rates (Louisiana, Mississippi, New Mexico, and West Virginia) also consistently rank among the highest for obesity. The scatter plot to the right makes this relationship visible: as poverty rates rise, obesity rates tend to rise with them. This is no coincidence. In high-poverty areas, fast food is often the most affordable and accessible source of calories, fresh grocery options are scarce, and the chronic stress of financial insecurity compounds poor health outcomes."),
                       fluidRow(
                         column(6, div(class="chart-box", div(class="chart-box-title","Highest Poverty Rates — Top 15 States"), div(class="chart-box-sub","% of all people in poverty · 2023"), plotlyOutput("povChart", height="440px"))),
                         column(6, div(class="chart-box", div(class="chart-box-title","Poverty vs. Obesity Correlation"), div(class="chart-box-sub","Each dot = one state. Hover for details."), plotlyOutput("scatterChart", height="440px")))
@@ -372,6 +376,8 @@ ui <- fluidPage(
                               div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
                           div(class="section-meta","3,000+ U.S. counties · Bubble size = Fast Food per 1k people")
                       ),
+                      p(class="page-blurb",
+                        "Research consistently links fast food density to higher rates of obesity and diet-related illness, particularly in lower-income and minority communities where access to fresh, affordable food is limited. At the same time, poverty shapes food choices in complex ways: fast food is often the most accessible and affordable option available."),
                       div(class="bubble-controls",
                           div(
                             tags$label("Bubble Opacity", class="control-label"),
