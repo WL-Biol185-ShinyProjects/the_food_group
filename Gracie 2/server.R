@@ -152,6 +152,7 @@ if (!is.null(atlas_raw)) {
 # Pre-aggregate atlas county data to state level at load time
 atlas_state_df <- NULL
 if (!is.null(atlas_df)) {
+  # State col is "State" containing abbreviations (AL, TX, etc.)
   state_col <- names(atlas_df)[tolower(names(atlas_df)) %in% c("state","state_name","statename","st")]
   if (length(state_col) > 0) {
     needed_cols <- c(state_col[1], "FoodInsecPct2123", "MedianHHInc2021", "FFRPer1k2020")
@@ -159,18 +160,22 @@ if (!is.null(atlas_df)) {
     if (length(available) == 4) {
       atlas_state_df <- atlas_df %>%
         select(all_of(available)) %>%
-        rename(state_name = !!state_col[1],
+        rename(state_abbr = !!state_col[1],
                food_insec = FoodInsecPct2123,
                median_inc = MedianHHInc2021,
                ff_per_1k  = FFRPer1k2020) %>%
-        filter(!is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k)) %>%
-        group_by(state_name) %>%
+        filter(!is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k),
+               !is.na(state_abbr), nchar(trimws(state_abbr)) == 2) %>%
+        mutate(state_abbr = trimws(state_abbr)) %>%
+        group_by(state_abbr) %>%
         summarise(
           food_insec = mean(food_insec, na.rm=TRUE),
           median_inc = mean(median_inc, na.rm=TRUE),
           ff_per_1k  = mean(ff_per_1k,  na.rm=TRUE),
           .groups = "drop"
         )
+      message("atlas_state_df rows: ", nrow(atlas_state_df),
+              " | sample abbrs: ", paste(head(atlas_state_df$state_abbr, 5), collapse=", "))
     }
   }
 }
@@ -420,22 +425,15 @@ server <- function(input, output, session) {
       filter(!is.na(abbr)) %>%
       select(state, abbr, race_pct)
 
-    # Join atlas state aggregates with race data
-    # atlas_state_df uses state abbreviations or full names — try both
+    # atlas_state_df has state_abbr (2-letter codes), race_clean has abbr
     merged <- atlas_state_df %>%
-      left_join(race_clean, by=c("state_name"="abbr"))
-
-    # If join failed (state_name is full names), try full name join
-    if (all(is.na(merged$race_pct))) {
-      merged <- atlas_state_df %>%
-        left_join(race_clean, by=c("state_name"="state"))
-    }
-
-    merged <- merged %>%
+      left_join(race_clean, by=c("state_abbr"="abbr")) %>%
       filter(!is.na(race_pct), !is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k))
 
     if (nrow(merged) == 0) {
-      message("No rows in demographics merged data — check state name matching")
+      message("No rows after join — atlas state_abbr sample: ",
+              paste(head(atlas_state_df$state_abbr, 5), collapse=", "),
+              " | race abbr sample: ", paste(head(race_clean$abbr, 5), collapse=", "))
       return(NULL)
     }
 
@@ -460,9 +458,9 @@ server <- function(input, output, session) {
               round(cl[3]+fr*(ch[3]-cl[3])))
     })
 
-    # Display label: prefer abbr, fall back to state_name
-    display_label <- ifelse(!is.na(merged$abbr), merged$abbr, merged$state_name)
-    state_display  <- ifelse(!is.na(merged$state), merged$state, merged$state_name)
+    # Display label: state abbr for bubble text, full name for hover
+    display_label <- merged$state_abbr
+    state_display  <- ifelse(!is.na(merged$state), merged$state, merged$state_abbr)
 
     hover_txt <- paste0(
       "<b>", state_display, " (", display_label, ")</b><br>",
