@@ -50,20 +50,10 @@ aboutTabUI <- function() {
         ),
         
         div(class="about-content",
-            
-            # ── Centered image ─────────────────────────────────
-            tags$div(style="text-align:center; margin-bottom:40px;",
-                     tags$img(
-                       src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/fast%20food.png",   # replace with your image filename or URL
-                       alt="",
-                       style="max-width:100%; width:680px; border-radius:10px; box-shadow:0 4px 18px rgba(0,0,0,.1);"
-                     )
-            ),
-            
             div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
-                tags$p("")
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has since evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
             ),
             tags$hr(class="about-divider"),
             div(class="about-section",
@@ -117,7 +107,7 @@ meetTeamUI <- function() {
     div(class="team-page",
         tags$h2(class="team-page-title", "Meet the Team"),
         tags$p(class="team-page-sub",
-               "Fast food isn't just about burgers. We built this to show how one industry quietly connects to poverty, race, health, and geography — all at once."),
+               "The people behind this project are students passionate about data, public health, and the story fast food tells about America."),
         tags$hr(class="team-divider"),
         div(class="team-grid",
             
@@ -125,13 +115,13 @@ meetTeamUI <- function() {
             div(class="team-card",
                 div(class="team-photo-wrap",
                     # Replace the src below with a real photo URL or relative path
-                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
+                    tags$img(src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/PHOTO%20MELLANESE.jpeg", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
-                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$h3(class="team-name",  "Mellanese Barlow"),
+                    tags$p(class="team-role",   "Biology Major and Poverty and Human Capability Studies Minor"),
                     tags$p(class="team-bio",
-                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                           "Hi, I'm Mellanese a pre-vet student from Atlanta, GA. I spend most of my time working with animals, travelling, shopping and hanging with friends. ")
                 )
             ),
             
@@ -141,7 +131,7 @@ meetTeamUI <- function() {
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 2")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$h3(class="team-name",  "Jacob Wright"),
                     tags$p(class="team-role",   "Your Role / Major"),
                     tags$p(class="team-bio",
                            "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
@@ -154,7 +144,7 @@ meetTeamUI <- function() {
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 3")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$h3(class="team-name",  "Gracie Jorgensen"),
                     tags$p(class="team-role",   "Your Role / Major"),
                     tags$p(class="team-bio",
                            "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
@@ -303,14 +293,15 @@ ui <- fluidPage(
   ),
   
   # ── HERO ──────────────────────────────────────────────────
-  div(class="hero", style="text-align:center;",
+  div(class="hero",
       div(class="hero-eyebrow", "American Fast Food & Public Health · Data Explorer"),
       h1(HTML("Fast Food, Health, and Poverty in America")),
-      p(class="hero-desc", style="margin:0 auto 2rem;",
+      p(class="hero-desc",
         "An interactive look at how fast food chains, nutritional choices, obesity rates, poverty,
-       and demographics intersect across the United States — powered by real datasets."),
-      div(class="hero-kpis", style="justify-content:center;")
+         and demographics intersect across the United States — powered by real datasets."),
+      div(class="hero-kpis")
   ),
+  
   # ── MAIN TABS ──────────────────────────────────────────────
   navbarPage(title="", id="nav",
              
@@ -357,7 +348,7 @@ ui <- fluidPage(
                       )
              ),
              
-             tabPanel("Obesity",
+             tabPanel("\U0001f4ca Obesity",
                       div(class="section-header",
                           div(div(class="section-label","State Health Data"),
                               div(class="section-title","Obesity Rates Across America")),
