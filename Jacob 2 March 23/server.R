@@ -361,140 +361,112 @@ server <- function(input, output, session) {
   })
   
   # ── DEMOGRAPHICS — bubble plot ───────────────────────────────
+  # ── DEMOGRAPHICS — STATE-LEVEL STORY BUBBLE ───────────────────
   output$demoBubbleChart <- renderPlotly({
     req(atlas_df)
     
-    opacity_val <- input$bubbleOpacity %||% 0.45
-    
-    needed <- c("FIPS","FoodInsecPct2123","MedianHHInc2021","FFRPer1k2020",
-                "PctWhite2020","PctBlack2020","PctHisp2020")
-    missing_cols <- setdiff(needed, names(atlas_df))
-    if (length(missing_cols) > 0) {
-      message("Missing atlas cols for bubble chart: ", paste(missing_cols, collapse=", "))
-      return(NULL)
-    }
-    
-    name_col  <- names(atlas_df)[tolower(names(atlas_df)) %in%
-                                   c("county","county_name","countyname","area_name","areaname","name")]
+    # Detect state column
     state_col <- names(atlas_df)[tolower(names(atlas_df)) %in%
                                    c("state","state_name","statename","st")]
+    req(length(state_col) > 0)
     
-    base_cols <- needed
-    if (length(name_col)  > 0) base_cols <- c(base_cols, name_col[1])
-    if (length(state_col) > 0) base_cols <- c(base_cols, state_col[1])
-    
-    base <- atlas_df %>%
-      select(all_of(base_cols)) %>%
-      rename(
-        food_insec = FoodInsecPct2123,
-        median_inc = MedianHHInc2021,
-        ff_per_1k  = FFRPer1k2020,
-        pct_white  = PctWhite2020,
-        pct_black  = PctBlack2020,
-        pct_hisp   = PctHisp2020
-      )
-    
-    if (length(name_col)  > 0) base <- base %>% rename(county_name = !!name_col[1])  else base$county_name <- "County"
-    if (length(state_col) > 0) base <- base %>% rename(state_name  = !!state_col[1]) else base$state_name  <- ""
-    
-    base <- base %>%
+    # ── STATE AGGREGATION ──────────────────────────────────────
+    state_df <- atlas_df %>%
+      rename(state = !!state_col[1]) %>%
+      group_by(state) %>%
+      summarise(
+        food_insec = mean(FoodInsecPct2123, na.rm=TRUE),
+        median_inc = mean(MedianHHInc2021, na.rm=TRUE),
+        ff_per_1k  = mean(FFRPer1k2020, na.rm=TRUE),
+        pct_black  = mean(PctBlack2020, na.rm=TRUE),
+        .groups = "drop"
+      ) %>%
       filter(!is.na(food_insec), !is.na(median_inc), !is.na(ff_per_1k))
     
-    # Pivot: one row per county × race group; keep groups with >5% share
-    race_long <- base %>%
-      pivot_longer(
-        cols      = c(pct_white, pct_black, pct_hisp),
-        names_to  = "race_col",
-        values_to = "race_pct"
-      ) %>%
-      mutate(race_group = case_when(
-        race_col == "pct_white" ~ "White",
-        race_col == "pct_black" ~ "Black",
-        race_col == "pct_hisp"  ~ "Hispanic",
-        TRUE ~ "Other"
-      )) %>%
-      filter(!is.na(race_pct), race_pct > 5)
+    # ── MEDIANS FOR QUADRANTS ──────────────────────────────────
+    x_mid <- median(state_df$food_insec, na.rm=TRUE)
+    y_mid <- median(state_df$median_inc, na.rm=TRUE)
     
-    if (nrow(race_long) == 0) {
-      message("No rows after race filter — check atlas column names"); return(NULL)
-    }
+    # ── BUBBLE SIZE SCALING ────────────────────────────────────
+    sizeref <- max(state_df$ff_per_1k, na.rm=TRUE) / 20
     
-    # Bubble size: FF per 1k scaled to pixel radius
-    ff_min <- quantile(race_long$ff_per_1k, 0.02, na.rm=TRUE)
-    ff_max <- quantile(race_long$ff_per_1k, 0.98, na.rm=TRUE)
-    size_fn <- function(x) rescale(pmin(pmax(x, ff_min), ff_max), to=c(4, 22), from=c(ff_min, ff_max))
-    
-    race_colors <- c("White"="#4e9af1", "Black"="#e05c30", "Hispanic"="#44b864")
-    
-    hover_fn <- function(d) {
-      paste0(
-        "<b>", d$county_name,
-        ifelse(d$state_name != "", paste0(", ", d$state_name), ""),
-        "</b><br>",
-        "Race group: <b>", d$race_group, "</b> (", round(d$race_pct, 1), "% of county)<br>",
-        "Food Insecurity: <b>", round(d$food_insec, 1), "%</b><br>",
-        "Median HH Income: <b>$", formatC(as.integer(d$median_inc), format="d", big.mark=","), "</b><br>",
-        "Fast Food / 1k people: <b>", round(d$ff_per_1k, 2), "</b>"
+    # ── PLOT ───────────────────────────────────────────────────
+    plot_ly(
+      state_df,
+      x = ~food_insec,
+      y = ~median_inc,
+      type = "scatter",
+      mode = "markers+text",
+      text = ~state,
+      textposition = "top center",
+      hovertemplate = paste0(
+        "<b>%{text}</b><br>",
+        "Food Insecurity: %{x:.1f}%<br>",
+        "Median Income: $%{y:,}<br>",
+        "Fast Food / 1k: %{marker.size:.2f}<extra></extra>"
+      ),
+      marker = list(
+        size = ~ff_per_1k,
+        sizemode = "diameter",
+        sizeref = sizeref,
+        sizemin = 6,
+        color = ~pct_black,
+        colorscale = list(c(0, "#f7fbff"), c(1, "#08306b")),
+        showscale = TRUE,
+        line = list(color = "white", width = 1),
+        opacity = 0.75
       )
-    }
-    
-    p <- plot_ly()
-    for (grp in c("White","Black","Hispanic")) {
-      d    <- race_long %>% filter(race_group == grp)
-      htxt <- hover_fn(d)
-      p <- p %>% add_trace(
-        data      = d,
-        x         = ~food_insec,
-        y         = ~median_inc,
-        type      = "scatter",
-        mode      = "markers",
-        name      = grp,
-        marker    = list(
-          size    = size_fn(d$ff_per_1k),
-          color   = race_colors[grp],
-          opacity = opacity_val,
-          line    = list(color="rgba(255,255,255,0.4)", width=0.5)
-        ),
-        hovertext = htxt,
-        hoverinfo = "text"
-      )
-    }
-    
-    p %>% layout(
-      paper_bgcolor = "#faf7f2",
-      plot_bgcolor  = "white",
-      xaxis = list(
-        title     = "Food Insecurity Rate (%)",
-        gridcolor = "#ede8df",
-        tickfont  = list(size=12),
-        zeroline  = FALSE
-      ),
-      yaxis = list(
-        title      = "Median Household Income ($)",
-        gridcolor  = "#ede8df",
-        tickfont   = list(size=12),
-        tickformat = "$,",
-        zeroline   = FALSE
-      ),
-      legend = list(
-        title       = list(text="<b>Race Group</b><br><sup>(>5% share)</sup>"),
-        orientation = "v",
-        x           = 1.01,
-        y           = 0.99,
-        font        = list(size=13)
-      ),
-      annotations = list(list(
-        text      = "Bubble size = fast food restaurants per 1k people  \u00b7  Color = dominant race group present at >5% county share  \u00b7  Hover for details",
-        x=0.5, y=-0.12, xref="paper", yref="paper", showarrow=FALSE,
-        font=list(size=10.5, color="#8c7355", family="Space Mono, monospace"),
-        xanchor="center"
-      )),
-      margin = list(l=80, r=140, t=30, b=80),
-      font   = list(family="DM Sans", size=13)
     ) %>%
-      config(displayModeBar=FALSE)
+      layout(
+        paper_bgcolor = "#faf7f2",
+        plot_bgcolor = "white",
+        
+        xaxis = list(
+          title = "Food Insecurity Rate (%)",
+          gridcolor = "#ede8df",
+          zeroline = FALSE
+        ),
+        yaxis = list(
+          title = "Median Household Income ($)",
+          gridcolor = "#ede8df",
+          tickformat = "$,",
+          zeroline = FALSE
+        ),
+        
+
+        
+        # ── STORY ANNOTATIONS ──────────────────────────────────
+        annotations = list(
+          list(
+            text = "Most vulnerable<br>(low income, high insecurity)",
+            x = min(state_df$food_insec),
+            y = min(state_df$median_inc),
+            showarrow = FALSE,
+            xanchor = "left",
+            font = list(size = 11)
+          ),
+          list(
+            text = "Wealthy & secure",
+            x = max(state_df$food_insec),
+            y = max(state_df$median_inc),
+            showarrow = FALSE,
+            xanchor = "right",
+            font = list(size = 11)
+          ),
+          list(
+            text = "Bubble size = fast food density • Color = % Black population",
+            x = 0.5, y = -0.15,
+            xref = "paper", yref = "paper",
+            showarrow = FALSE,
+            font = list(size = 10, color = "#8c7355")
+          )
+        ),
+        
+        margin = list(l=80, r=40, t=30, b=80),
+        font = list(family="DM Sans", size=13)
+      ) %>%
+      config(displayModeBar = FALSE)
   })
-  
   # ── MAP ──────────────────────────────────────────────────────
   all_chains_available <- reactive({
     if (!is.null(map_df)) sort(unique(map_df$chain[map_df$chain != "Other"]))
@@ -627,17 +599,6 @@ server <- function(input, output, session) {
   })
   
   # ── COMPARE TAB ─────────────────────────────────────────────
-  atlas_state_col  <- reactive({
-    req(atlas_df); cols <- names(atlas_df)
-    match <- cols[tolower(cols) %in% c("state","state_name","statename","st")]
-    if (length(match)) match[1] else NULL
-  })
-  atlas_county_col <- reactive({
-    req(atlas_df); cols <- names(atlas_df)
-    match <- cols[tolower(cols) %in% c("county","county_name","countyname","area_name","areaname","name")]
-    if (length(match)) match[1] else NULL
-  })
-  
   atlas_geo <- function(varname) {
     req(county_sf)
     if (varname == "ObesityRate2022") {

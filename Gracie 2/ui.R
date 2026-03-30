@@ -381,7 +381,12 @@ ui <- fluidPage(
             div(class="chart-box-title","Filter Chains"),
             div(class="chart-box-sub","Click to toggle chains on/off"),
             uiOutput("chainFilterUI")
-          )
+          )runApp('Gracie 2')
+shiny::runApp('Jacob 2 March 23')
+runApp('Jacob 2 March 23')
+runApp('Jacob 2 March 23')
+runApp('Jacob 2 March 23')
+
         )
       )
     )
