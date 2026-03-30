@@ -115,13 +115,13 @@ meetTeamUI <- function() {
             div(class="team-card",
                 div(class="team-photo-wrap",
                     # Replace the src below with a real photo URL or relative path
-                    tags$img(src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/PHOTO%20MELLANESE.jpeg", alt="Team Member 1")
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Mellanese Barlow"),
-                    tags$p(class="team-role",   "Biology Major and Poverty and Human Capability Studies Minor"),
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
                     tags$p(class="team-bio",
-                           "Hi, I'm Mellanese a pre-vet student from Atlanta, GA. I spend most of my time working with animals, travelling, shopping and hanging with friends. ")
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
                 )
             ),
             
