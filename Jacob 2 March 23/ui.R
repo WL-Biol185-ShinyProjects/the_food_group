@@ -35,7 +35,7 @@ aboutTabUI <- function() {
         div(class="about-content",
             div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has since evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
                 tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
             ),
             tags$hr(class="about-divider"),
@@ -65,6 +65,77 @@ aboutTabUI <- function() {
             )
         )
     )
+  )
+}
+
+# ── MEET THE TEAM PAGE UI ────────────────────────────────────
+meetTeamUI <- function() {
+  tagList(
+    tags$style(HTML("
+      .team-page { background:#faf7f2; font-family:'DM Sans',sans-serif; color:#2c2318; min-height:100vh; padding:60px 5% 80px; }
+      .team-page-title { font-family:'Playfair Display',Georgia,serif; font-size:2.2rem; font-weight:700; color:#1a0f00; margin:0 0 8px; }
+      .team-page-sub { font-size:1rem; color:#7a6a57; margin:0 0 48px; line-height:1.6; max-width:560px; }
+      .team-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:28px; max-width:960px; }
+      .team-card { background:#fff; border:1px solid #e8dfd0; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); transition:transform .2s ease,box-shadow .2s ease; }
+      .team-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,0,0,.1); }
+      .team-photo-wrap { width:100%; aspect-ratio:1/1; overflow:hidden; background:#ede8df; }
+      .team-photo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+      .team-photo-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:4rem; background:linear-gradient(135deg,#ede8df,#d4c9b5); }
+      .team-card-body { padding:22px 24px 26px; }
+      .team-name { font-family:'Playfair Display',Georgia,serif; font-size:1.25rem; font-weight:700; color:#1a0f00; margin:0 0 4px; }
+      .team-role { font-size:.78rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#d4380d; margin:0 0 14px; }
+      .team-bio { font-size:.88rem; line-height:1.75; color:#3d2e1e; margin:0; }
+      .team-divider { border:none; border-top:1px solid #e8dfd0; margin:0 0 48px; max-width:960px; }
+    ")),
+    div(class="team-page",
+        tags$h2(class="team-page-title", "Meet the Team"),
+        tags$p(class="team-page-sub",
+               "The people behind this project — students passionate about data, public health, and the story fast food tells about America."),
+        tags$hr(class="team-divider"),
+        div(class="team-grid",
+            
+            # ── Member 1 ──────────────────────────────────────
+            div(class="team-card",
+                div(class="team-photo-wrap",
+                    # Replace the src below with a real photo URL or relative path
+                    tags$img(src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/PHOTO%20MELLANESE.jpeg", alt="Team Member 1")
+                ),
+                div(class="team-card-body",
+                    tags$h3(class="team-name",  "Mellanese Barlow"),
+                    tags$p(class="team-role",   "Biology Major and Poverty and Human Capability Studies Minor"),
+                    tags$p(class="team-bio",
+                           "Hi, I'm Mellanese a pre-vet student from Atlanta, GA. I spend most of my time working with animals, travelling, shopping and hanging with friends. ")
+                )
+            ),
+            
+            # ── Member 2 ──────────────────────────────────────
+            div(class="team-card",
+                div(class="team-photo-wrap",
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 2")
+                ),
+                div(class="team-card-body",
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$p(class="team-bio",
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                )
+            ),
+            
+            # ── Member 3 ──────────────────────────────────────
+            div(class="team-card",
+                div(class="team-photo-wrap",
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 3")
+                ),
+                div(class="team-card-body",
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$p(class="team-bio",
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                )
+            )
+            
+        ) # end team-grid
+    )   # end team-page
   )
 }
 
@@ -365,7 +436,9 @@ ui <- fluidPage(
                               uiOutput("compareLegendB")
                           )
                       )
-             )
+             ),
+             
+             tabPanel("Meet the Team", meetTeamUI())
   ),
   
   div(class="dash-footer",
