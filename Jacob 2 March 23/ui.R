@@ -25,18 +25,53 @@ aboutTabUI <- function() {
       .about-footer-note strong { color:#2c2318; }
     ")),
     div(class="about-page",
+<<<<<<< HEAD
+        # Stat strip
+        tags$div(style = "height:40px;"), # spacer
+        
+        tags$h2(""),
+        
+        div(class = "stat-strip",
+            div(class = "stat-card",
+                div(class = "stat-number", "200K+"),
+                div(class = "stat-label",  "Fast-food locations\nacross the U.S.")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "~36%"),
+                div(class = "stat-label",  "Adults who eat\nfast food daily")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "50"),
+                div(class = "stat-label",  "Top chains\nanalyzed")
+            ),
+            div(class = "stat-card",
+                div(class = "stat-number", "$331B"),
+                div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
+            )
+=======
         tags$div(style="height:40px;"),
         div(class="stat-strip",
             div(class="stat-card", div(class="stat-number","200K+"), div(class="stat-label","Fast-food locations across the U.S.")),
             div(class="stat-card", div(class="stat-number","~36%"),  div(class="stat-label","Adults who eat fast food daily")),
             div(class="stat-card", div(class="stat-number","50"),    div(class="stat-label","Top chains analyzed")),
             div(class="stat-card", div(class="stat-number","$331B"), div(class="stat-label","U.S. fast-food industry revenue (2023)"))
+>>>>>>> e9d56bdd6891771d5ba2c2d3cf2c3a5dc540877e
         ),
         div(class="about-content",
+            
+            # ── Centered image ─────────────────────────────────
+            tags$div(style="text-align:center; margin-bottom:40px;",
+                     tags$img(
+                       src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/fast%20food.png",   # replace with your image filename or URL
+                       alt="",
+                       style="max-width:100%; width:680px; border-radius:10px; box-shadow:0 4px 18px rgba(0,0,0,.1);"
+                     )
+            ),
+            
             div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has since evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
-                tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("")
             ),
             tags$hr(class="about-divider"),
             div(class="about-section",
@@ -90,7 +125,7 @@ meetTeamUI <- function() {
     div(class="team-page",
         tags$h2(class="team-page-title", "Meet the Team"),
         tags$p(class="team-page-sub",
-               "The people behind this project — students passionate about data, public health, and the story fast food tells about America."),
+               "Fast food isn't just about burgers. We built this to show how one industry quietly connects to poverty, race, health, and geography — all at once."),
         tags$hr(class="team-divider"),
         div(class="team-grid",
             
@@ -98,13 +133,13 @@ meetTeamUI <- function() {
             div(class="team-card",
                 div(class="team-photo-wrap",
                     # Replace the src below with a real photo URL or relative path
-                    tags$img(src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/PHOTO%20MELLANESE.jpeg", alt="Team Member 1")
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Mellanese Barlow"),
-                    tags$p(class="team-role",   "Biology Major and Poverty and Human Capability Studies Minor"),
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
                     tags$p(class="team-bio",
-                           "Hi, I'm Mellanese a pre-vet student from Atlanta, GA. I spend most of my time working with animals, travelling, shopping and hanging with friends. ")
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
                 )
             ),
             
@@ -247,15 +282,14 @@ ui <- fluidPage(
   ),
   
   # ── HERO ──────────────────────────────────────────────────
-  div(class="hero",
+  div(class="hero", style="text-align:center;",
       div(class="hero-eyebrow", "American Fast Food & Public Health · Data Explorer"),
       h1(HTML("Fast Food, Health, and Poverty in America")),
-      p(class="hero-desc",
+      p(class="hero-desc", style="margin:0 auto 2rem;",
         "An interactive look at how fast food chains, nutritional choices, obesity rates, poverty,
-         and demographics intersect across the United States — powered by real datasets."),
-      div(class="hero-kpis")
+       and demographics intersect across the United States — powered by real datasets."),
+      div(class="hero-kpis", style="justify-content:center;")
   ),
-  
   # ── MAIN TABS ──────────────────────────────────────────────
   navbarPage(title="", id="nav",
              
@@ -285,6 +319,8 @@ ui <- fluidPage(
                               div(class="section-title","What's Really in Your Meal?")),
                           div(class="section-meta","Source: FDA · 515 Menu Items")
                       ),
+                      p(class="page-blurb",
+                        "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
                       tabsetPanel(
                         tabPanel("By Restaurant", br(), uiOutput("nutrCards")),
                         tabPanel("Calories & Sodium", br(),
@@ -302,7 +338,7 @@ ui <- fluidPage(
                       )
              ),
              
-             tabPanel("\U0001f4ca Obesity",
+             tabPanel("Obesity",
                       div(class="section-header",
                           div(div(class="section-label","State Health Data"),
                               div(class="section-title","Obesity Rates Across America")),
@@ -325,6 +361,8 @@ ui <- fluidPage(
                               div(class="section-title","Poverty Rates by State")),
                           div(class="section-meta","Source: USDA SAIPE · 2023")
                       ),
+                      p(class="page-blurb",
+                        "Poverty and poor health outcomes tend to have correlation in America. States with the highest poverty rates (Louisiana, Mississippi, New Mexico, and West Virginia) also consistently rank among the highest for obesity. The scatter plot to the right makes this relationship visible: as poverty rates rise, obesity rates tend to rise with them. This is no coincidence. In high-poverty areas, fast food is often the most affordable and accessible source of calories, fresh grocery options are scarce, and the chronic stress of financial insecurity compounds poor health outcomes."),
                       fluidRow(
                         column(6, div(class="chart-box", div(class="chart-box-title","Highest Poverty Rates — Top 15 States"), div(class="chart-box-sub","% of all people in poverty · 2023"), plotlyOutput("povChart", height="440px"))),
                         column(6, div(class="chart-box", div(class="chart-box-title","Poverty vs. Obesity Correlation"), div(class="chart-box-sub","Each dot = one state. Hover for details."), plotlyOutput("scatterChart", height="440px")))
@@ -338,6 +376,8 @@ ui <- fluidPage(
                               div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
                           div(class="section-meta","3,000+ U.S. counties · Bubble size = Fast Food per 1k people")
                       ),
+                      p(class="page-blurb",
+                        "Research consistently links fast food density to higher rates of obesity and diet-related illness, particularly in lower-income and minority communities where access to fresh, affordable food is limited. At the same time, poverty shapes food choices in complex ways: fast food is often the most accessible and affordable option available."),
                       div(class="bubble-controls",
                           div(
                             tags$label("Bubble Opacity", class="control-label"),

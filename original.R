@@ -28,7 +28,7 @@ aboutTabUI <- function() {
         # Stat strip
         tags$div(style = "height:40px;"), # spacer
         
-        tags$h2("Stats About Fast Food"),
+        tags$h2(""),
         
         div(class = "stat-strip",
             div(class = "stat-card",
@@ -50,19 +50,9 @@ aboutTabUI <- function() {
         ),
         
         div(class="about-content",
-
-            # ── Centered image ─────────────────────────────────
-            tags$div(style="text-align:center; margin-bottom:40px;",
-                tags$img(
-                    src="your-image.jpg",   # replace with your image filename or URL
-                    alt="Fast Food in America",
-                    style="max-width:100%; width:680px; border-radius:10px; box-shadow:0 4px 18px rgba(0,0,0,.1);"
-                )
-            ),
-
             div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has since evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
                 tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
             ),
             tags$hr(class="about-divider"),
@@ -117,50 +107,50 @@ meetTeamUI <- function() {
     div(class="team-page",
         tags$h2(class="team-page-title", "Meet the Team"),
         tags$p(class="team-page-sub",
-               "Fast food isn't just about burgers. We built this to show how one industry quietly connects to poverty, race, health, and geography — all at once."),
+               "The people behind this project are students passionate about data, public health, and the story fast food tells about America."),
         tags$hr(class="team-divider"),
         div(class="team-grid",
-
+            
             # ── Member 1 ──────────────────────────────────────
             div(class="team-card",
                 div(class="team-photo-wrap",
                     # Replace the src below with a real photo URL or relative path
-                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
+                    tags$img(src="https://positworkbench.wlu.edu/s/9595f405ea03749c2351b/files/the_food_group/the_food_group/Jacob%202%20March%2023/WWW/PHOTO%20MELLANESE.jpeg", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
-                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$h3(class="team-name",  "Mellanese Barlow"),
+                    tags$p(class="team-role",   "Biology Major and Poverty and Human Capability Studies Minor"),
                     tags$p(class="team-bio",
-                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                           "Hi, I'm Mellanese a pre-vet student from Atlanta, GA. I spend most of my time working with animals, travelling, shopping and hanging with friends. ")
                 )
             ),
-
+            
             # ── Member 2 ──────────────────────────────────────
             div(class="team-card",
                 div(class="team-photo-wrap",
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 2")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$h3(class="team-name",  "Jacob Wright"),
                     tags$p(class="team-role",   "Your Role / Major"),
                     tags$p(class="team-bio",
                            "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
                 )
             ),
-
+            
             # ── Member 3 ──────────────────────────────────────
             div(class="team-card",
                 div(class="team-photo-wrap",
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 3")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$h3(class="team-name",  "Gracie Jorgensen"),
                     tags$p(class="team-role",   "Your Role / Major"),
                     tags$p(class="team-bio",
                            "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
                 )
             )
-
+            
         ) # end team-grid
     )   # end team-page
   )
@@ -509,7 +499,7 @@ ui <- fluidPage(
                           )
                       )
              ),
-
+             
              tabPanel("Meet the Team", meetTeamUI())
   ),
   
