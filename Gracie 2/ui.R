@@ -359,15 +359,19 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Economic Context"),
                               div(class="section-title","Poverty Rates by State")),
-                          div(class="section-meta","Source: USDA SAIPE · 2023")
-                      ),
+                          div(class="section-meta",
+                              tags$a(href = "https://www.census.gov/data-tools/demo/saipe/#/?map_yearSelector=2023&x_tableYears=2024,2023",
+                              "USA Census Bureau: Small Area Income and Poverty Estimates (SAIPE)",
+                              target = "_blank") )
+                          ),
                       p(class="page-blurb",
                         "Poverty and poor health outcomes tend to have correlation in America. States with the highest poverty rates (Louisiana, Mississippi, New Mexico, and West Virginia) also consistently rank among the highest for obesity. The scatter plot to the right makes this relationship visible: as poverty rates rise, obesity rates tend to rise with them. This is no coincidence. In high-poverty areas, fast food is often the most affordable and accessible source of calories, fresh grocery options are scarce, and the chronic stress of financial insecurity compounds poor health outcomes."),
                       fluidRow(
                         column(6, div(class="chart-box", div(class="chart-box-title","Highest Poverty Rates — Top 15 States"), div(class="chart-box-sub","% of all people in poverty · 2023"), plotlyOutput("povChart", height="440px"))),
                         column(6, div(class="chart-box", div(class="chart-box-title","Poverty vs. Obesity Correlation"), div(class="chart-box-sub","Each dot = one state. Hover for details."), plotlyOutput("scatterChart", height="440px")))
                       )
-             ),
+             )
+             ,
              
              tabPanel("Demographics",
                       div(class="section-header",
