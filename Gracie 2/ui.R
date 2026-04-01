@@ -415,6 +415,7 @@ ui <- fluidPage(
                                                    choices=c("None (Chain Colors)"="none",
                                                              "Obesity Rate by County"="obesity",
                                                              "Poverty Rate by County"="poverty"),
+                                                   selected="obesity",
                                                    width="220px")
                                    ),
                                    div(class="map-counter-text", textOutput("mapCounter", inline=TRUE))
@@ -426,7 +427,7 @@ ui <- fluidPage(
                                div(class="filter-panel",
                                    div(class="chart-box-title","Filter Chains"),
                                    div(class="chart-box-sub","Click to toggle chains on/off"),
-                                   actionButton("toggleAllChains","Deselect All", class="btn-filter-toggle"),
+                                   actionButton("toggleAllChains","Select All", class="btn-filter-toggle"),
                                    uiOutput("chainFilterUI")
                                )
                         )
