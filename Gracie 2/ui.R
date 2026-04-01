@@ -81,6 +81,78 @@ aboutTabUI <- function() {
   )
 }
 
+
+# ── MEET THE TEAM PAGE UI ────────────────────────────────────
+meetTeamUI <- function() {
+  tagList(
+    tags$style(HTML("
+      .team-page { background:#faf7f2; font-family:'DM Sans',sans-serif; color:#2c2318; min-height:100vh; padding:60px 5% 80px; }
+      .team-page-title { font-family:'Playfair Display',Georgia,serif; font-size:2.2rem; font-weight:700; color:#1a0f00; margin:0 0 8px; }
+      .team-page-sub { font-size:1rem; color:#7a6a57; margin:0 0 48px; line-height:1.6; max-width:560px; }
+      .team-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:28px; max-width:960px; }
+      .team-card { background:#fff; border:1px solid #e8dfd0; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); transition:transform .2s ease,box-shadow .2s ease; }
+      .team-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,0,0,.1); }
+      .team-photo-wrap { width:100%; aspect-ratio:1/1; overflow:hidden; background:#ede8df; }
+      .team-photo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+      .team-photo-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:4rem; background:linear-gradient(135deg,#ede8df,#d4c9b5); }
+      .team-card-body { padding:22px 24px 26px; }
+      .team-name { font-family:'Playfair Display',Georgia,serif; font-size:1.25rem; font-weight:700; color:#1a0f00; margin:0 0 4px; }
+      .team-role { font-size:.78rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#d4380d; margin:0 0 14px; }
+      .team-bio { font-size:.88rem; line-height:1.75; color:#3d2e1e; margin:0; }
+      .team-divider { border:none; border-top:1px solid #e8dfd0; margin:0 0 48px; max-width:960px; }
+    ")),
+    div(class="team-page",
+        tags$h2(class="team-page-title", "Meet the Team"),
+        tags$p(class="team-page-sub",
+               "Fast food isn't just about burgers. We built this to show how one industry quietly connects to poverty, race, health, and geography — all at once."),
+        tags$hr(class="team-divider"),
+        div(class="team-grid",
+            
+            # ── Member 1 ──────────────────────────────────────
+            div(class="team-card",
+                div(class="team-photo-wrap",
+                    # Replace the src below with a real photo URL or relative path
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
+                ),
+                div(class="team-card-body",
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$p(class="team-bio",
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                )
+            ),
+            
+            # ── Member 2 ──────────────────────────────────────
+            div(class="team-card",
+                div(class="team-photo-wrap",
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 2")
+                ),
+                div(class="team-card-body",
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$p(class="team-bio",
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                )
+            ),
+            
+            # ── Member 3 ──────────────────────────────────────
+            div(class="team-card",
+                div(class="team-photo-wrap",
+                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 3")
+                ),
+                div(class="team-card-body",
+                    tags$h3(class="team-name",  "Your Name Here"),
+                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$p(class="team-bio",
+                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                )
+            )
+            
+        ) # end team-grid
+    )   # end team-page
+  )
+}
+
 # ── UI ───────────────────────────────────────────────────────
 ui <- fluidPage(
   tags$head(
@@ -189,7 +261,7 @@ ui <- fluidPage(
       @media(max-width:900px) { .tab-pane { padding:1.5rem; } .hero { padding:2rem 1.5rem; } }
     "))
   ),
-
+  
   div(class="hero",
       div(class="hero-eyebrow", "American Fast Food & Public Health · Data Explorer"),
       h1(HTML("Fast Food, Health, and Poverty in America")),
@@ -198,193 +270,195 @@ ui <- fluidPage(
          and demographics intersect across the United States — powered by real datasets."),
       div(class="hero-kpis")
   ),
-
+  
   navbarPage(title="", id="nav",
-
-    tabPanel("About", aboutTabUI()),
-
-    tabPanel("Chains",
-      div(class="section-header",
-          div(div(class="section-label","Top 50 Fast Food Chains"),
-              div(class="section-title","Sales & Market Presence")),
-          div(class="section-meta","Source: QSR Magazine · 2021")
-      ),
-      p(class="page-blurb",
-        "As fast food has become a defining feature of the American food landscape, with over 200,000 locations nationwide, having an understanding of where it concentrates, who it serves, and what it contains has real public health implications."),
-      div(class="chart-box",
-          div(class="chart-box-title","Systemwide Sales — Top 20 Chains"),
-          div(class="chart-box-sub","U.S. Sales in Millions USD · 2021"),
-          plotlyOutput("salesChart", height="540px")
-      ),
-      div(class="chart-box",
-          div(class="chart-box-title","Total Units vs. Average Sales per Unit"),
-          div(class="chart-box-sub","Bubble size = total units · Each bubble = one chain · 2021"),
-          plotlyOutput("chainScatterChart", height="420px")
-      )
-    ),
-
-    tabPanel("Nutrition",
-      div(class="section-header",
-          div(div(class="section-label","Menu Nutrition"),
-              div(class="section-title","What's Really in Your Meal?")),
-          div(class="section-meta","Source: FDA · 515 Menu Items")
-      ),
-      p(class="page-blurb",
-        "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
-      tabsetPanel(
-        tabPanel("By Restaurant", br(), uiOutput("nutrCards")),
-        tabPanel("Calories & Sodium", br(),
-                 fluidRow(
-                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Calories per Menu Item"), div(class="chart-box-sub","Mean across all items per restaurant"), plotlyOutput("calChart", height="320px"))),
-                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Sodium per Menu Item (mg)"), div(class="chart-box-sub","Mean sodium content"), plotlyOutput("sodChart", height="320px")))
-                 )
-        ),
-        tabPanel("Protein & Fat", br(),
-                 fluidRow(
-                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Protein per Menu Item (g)"), plotlyOutput("protChart", height="320px"))),
-                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Total Fat per Menu Item (g)"), plotlyOutput("fatChart", height="320px")))
-                 )
-        )
-      )
-    ),
-
-    tabPanel("\U0001f4ca Obesity",
-      div(class="section-header",
-          div(div(class="section-label","State Health Data"),
-              div(class="section-title","Obesity Rates Across America")),
-          div(class="section-meta","Source: CDC BRFSS · 2023")
-      ),
-      tabsetPanel(
-        tabPanel("State Ranking", br(),
-                 fluidRow(
-                   column(6, div(class="chart-box", div(class="chart-box-title","Highest Obesity Rates — Top 15 States"), div(class="chart-box-sub","Adult obesity prevalence (%)"), plotlyOutput("obHighChart", height="440px"))),
-                   column(6, div(class="chart-box", div(class="chart-box-title","Lowest Obesity Rates — Bottom 10 States"), div(class="chart-box-sub","Adult obesity prevalence (%)"), plotlyOutput("obLowChart", height="440px")))
-                 )
-        ),
-        tabPanel("All States Table", br(), DTOutput("obTable"))
-      )
-    ),
-
-    tabPanel("Poverty",
-      div(class="section-header",
-          div(div(class="section-label","Economic Context"),
-              div(class="section-title","Poverty Rates by State")),
-          div(class="section-meta","Source: USDA SAIPE · 2023")
-      ),
-      p(class="page-blurb",
-        "Poverty and poor health outcomes tend to have correlation in America. States with the highest poverty rates (Louisiana, Mississippi, New Mexico, and West Virginia) also consistently rank among the highest for obesity. The scatter plot to the right makes this relationship visible: as poverty rates rise, obesity rates tend to rise with them. This is no coincidence. In high-poverty areas, fast food is often the most affordable and accessible source of calories, fresh grocery options are scarce, and the chronic stress of financial insecurity compounds poor health outcomes."),
-      fluidRow(
-        column(6, div(class="chart-box", div(class="chart-box-title","Highest Poverty Rates — Top 15 States"), div(class="chart-box-sub","% of all people in poverty · 2023"), plotlyOutput("povChart", height="440px"))),
-        column(6, div(class="chart-box", div(class="chart-box-title","Poverty vs. Obesity Correlation"), div(class="chart-box-sub","Each dot = one state. Hover for details."), plotlyOutput("scatterChart", height="440px")))
-      )
-    ),
-
-    tabPanel("Demographics",
-      div(class="section-header",
-          div(div(class="section-label","Demographics · Food Environment Atlas 2025"),
-              div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
-          div(class="section-meta","51 U.S. states · Bubble size = Fast Food per 1k people")
-      ),
-      p(class="page-blurb",
-        "Research consistently links fast food density to higher rates of obesity and diet-related illness, particularly in lower-income and minority communities where access to fresh, affordable food is limited. At the same time, poverty shapes food choices in complex ways: fast food is often the most accessible and affordable option available."),
-      div(class="bubble-controls",
-          div(
-            tags$label("Race Group", class="control-label"),
-            selectInput("raceGroup", label=NULL,
-                        choices=c("% White"="white", "% Black"="black", "% Hispanic"="hispanic"),
-                        selected="white", width="200px")
-          ),
-          div(class="bubble-legend",
-              tags$span(style="font-family:var(--mono);font-size:.7rem;color:var(--brown);",
-                        HTML("Bubble size = fast food / 1k people &nbsp;&middot;&nbsp; Color intensity = % share of selected race &nbsp;&middot;&nbsp; Hover for details"))
-          )
-      ),
-      div(class="chart-box",
-          div(class="chart-box-title", "Food Insecurity vs. Median Household Income — State Level"),
-          div(class="chart-box-sub", "X = food insecurity rate \u00b7 Y = median household income \u00b7 Size = fast food per 1k \u00b7 Color = % selected race group \u00b7 Hover for state details"),
-          plotlyOutput("demoBubbleChart", height="620px")
-      )
-    ),
-
-    tabPanel("Map",
-      div(class="section-header",
-          div(div(class="section-label","Interactive Map"),
-              div(class="section-title","Fast Food Across America")),
-          div(class="section-meta","Source: Datafiniti / Kaggle · 9,999 locations")
-      ),
-      fluidRow(
-        column(9,
-               div(class="map-control-row",
-                   div(style="display:flex;align-items:center;gap:.6rem;",
-                       tags$label(style="font-family:var(--mono);font-size:.75rem;color:var(--brown);margin:0;","Map Overlay:"),
-                       selectInput("mapOverlay", NULL,
-                                   choices=c("None (Chain Colors)"="none",
-                                             "Obesity Rate by County"="obesity",
-                                             "Poverty Rate by County"="poverty"),
-                                   width="220px")
-                   ),
-                   div(class="map-counter-text", textOutput("mapCounter", inline=TRUE))
-               ),
-               leafletOutput("ffMap", height="580px"),
-               uiOutput("overlayLegend")
-        ),
-        column(3,
-               div(class="filter-panel",
-                   div(class="chart-box-title","Filter Chains"),
-                   div(class="chart-box-sub","Click to toggle chains on/off"),
-                   actionButton("toggleAllChains","Deselect All", class="btn-filter-toggle"),
-                   uiOutput("chainFilterUI")
-               )
-        )
-      )
-    ),
-
-    tabPanel("Compare",
-      div(class="section-header",
-          div(div(class="section-label","Geographic Comparison · USDA Food Environment Atlas 2025"),
-              div(class="section-title","Compare Any Two Variables, County by County")),
-          div(class="section-meta","3,153 U.S. counties · Obesity, Diabetes, Poverty, Food Security & more")
-      ),
-      div(class="compare-pickers",
-          div(class="compare-picker-box",
-              span(class="compare-map-label left","Left Map — Variable A"),
-              selectInput("compareVarA", NULL, width="100%",
-                          choices=list(
-                            "Health"        = c("Obesity Rate by County % (2023)"="ObesityRate2022","Diabetes Rate % (2019)"="DiabetesRate2019","Physically Active HS % (2021)"="PctHSPhysActive2021"),
-                            "Food Security" = c("Food Insecurity % (2021-23)"="FoodInsecPct2123","Very Low Food Security % (2021-23)"="VeryLowFoodSecPct2123","Low Food Access % (2019)"="PctLowAccess2019","Low Income + Low Access %"="PctLowIncLowAccess2019","Children Low Access %"="PctChildLowAccess2019"),
-                            "Economics"     = c("Poverty Rate % (2021)"="PovRate2021","Child Poverty Rate % (2021)"="ChildPovRate2021","Deep Poverty Rate % (2021)"="DeepPovRate2021","Median HH Income $ (2021)"="MedianHHInc2021","SNAP Participation % (2022)"="SNAPPct2022","School Lunch % (2021)"="SchoolLunchPct2021"),
-                            "Food Env."     = c("Fast Food per 1k (2020)"="FFRPer1k2020","Grocery Stores per 1k (2020)"="GrocPer1k2020","Dollar Stores per 1k (2020)"="DollarPer1k2020","Conv Stores per 1k (2020)"="ConvPer1k2020","Rec Facilities per 1k (2020)"="RecFacPer1k2020","Farmers Markets per 1k (2018)"="FarmMktPer1k2018"),
-                            "Demographics"  = c("% White (2020)"="PctWhite2020","% Black (2020)"="PctBlack2020","% Hispanic (2020)"="PctHisp2020","% Age 65+ (2020)"="Pct65Plus2020","% Under 18 (2020)"="PctUnder182020")
-                          ), selected="ObesityRate2022")
-          ),
-          div(class="compare-vs","vs"),
-          div(class="compare-picker-box",
-              span(class="compare-map-label right","Right Map — Variable B"),
-              selectInput("compareVarB", NULL, width="100%",
-                          choices=list(
-                            "Health"        = c("Obesity Rate by County % (2023)"="ObesityRate2022","Diabetes Rate % (2019)"="DiabetesRate2019","Physically Active HS % (2021)"="PctHSPhysActive2021"),
-                            "Food Security" = c("Food Insecurity % (2021-23)"="FoodInsecPct2123","Very Low Food Security % (2021-23)"="VeryLowFoodSecPct2123","Low Food Access % (2019)"="PctLowAccess2019","Low Income + Low Access %"="PctLowIncLowAccess2019","Children Low Access %"="PctChildLowAccess2019"),
-                            "Economics"     = c("Poverty Rate % (2021)"="PovRate2021","Child Poverty Rate % (2021)"="ChildPovRate2021","Deep Poverty Rate % (2021)"="DeepPovRate2021","Median HH Income $ (2021)"="MedianHHInc2021","SNAP Participation % (2022)"="SNAPPct2022","School Lunch % (2021)"="SchoolLunchPct2021"),
-                            "Food Env."     = c("Fast Food per 1k (2020)"="FFRPer1k2020","Grocery Stores per 1k (2020)"="GrocPer1k2020","Dollar Stores per 1k (2020)"="DollarPer1k2020","Conv Stores per 1k (2020)"="ConvPer1k2020","Rec Facilities per 1k (2020)"="RecFacPer1k2020","Farmers Markets per 1k (2018)"="FarmMktPer1k2018"),
-                            "Demographics"  = c("% White (2020)"="PctWhite2020","% Black (2020)"="PctBlack2020","% Hispanic (2020)"="PctHisp2020","% Age 65+ (2020)"="Pct65Plus2020","% Under 18 (2020)"="PctUnder182020")
-                          ), selected="PovRate2021")
-          )
-      ),
-      div(class="compare-maps-wrap",
-          div(class="compare-map-panel",
-              span(class="compare-map-label left", textOutput("compareLabelA", inline=TRUE)),
-              br(), leafletOutput("compareMapA", height="420px"), br(),
-              uiOutput("compareLegendA")
-          ),
-          div(class="compare-map-panel",
-              span(class="compare-map-label right", textOutput("compareLabelB", inline=TRUE)),
-              br(), leafletOutput("compareMapB", height="420px"), br(),
-              uiOutput("compareLegendB")
-          )
-      )
-    )
+             
+             tabPanel("About", aboutTabUI()),
+             
+             tabPanel("Chains",
+                      div(class="section-header",
+                          div(div(class="section-label","Top 50 Fast Food Chains"),
+                              div(class="section-title","Sales & Market Presence")),
+                          div(class="section-meta","Source: QSR Magazine · 2021")
+                      ),
+                      p(class="page-blurb",
+                        "As fast food has become a defining feature of the American food landscape, with over 200,000 locations nationwide, having an understanding of where it concentrates, who it serves, and what it contains has real public health implications."),
+                      div(class="chart-box",
+                          div(class="chart-box-title","Systemwide Sales — Top 20 Chains"),
+                          div(class="chart-box-sub","U.S. Sales in Millions USD · 2021"),
+                          plotlyOutput("salesChart", height="540px")
+                      ),
+                      div(class="chart-box",
+                          div(class="chart-box-title","Total Units vs. Average Sales per Unit"),
+                          div(class="chart-box-sub","Bubble size = total units · Each bubble = one chain · 2021"),
+                          plotlyOutput("chainScatterChart", height="420px")
+                      )
+             ),
+             
+             tabPanel("Nutrition",
+                      div(class="section-header",
+                          div(div(class="section-label","Menu Nutrition"),
+                              div(class="section-title","What's Really in Your Meal?")),
+                          div(class="section-meta","Source: FDA · 515 Menu Items")
+                      ),
+                      p(class="page-blurb",
+                        "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
+                      tabsetPanel(
+                        tabPanel("By Restaurant", br(), uiOutput("nutrCards")),
+                        tabPanel("Calories & Sodium", br(),
+                                 fluidRow(
+                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Calories per Menu Item"), div(class="chart-box-sub","Mean across all items per restaurant"), plotlyOutput("calChart", height="320px"))),
+                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Sodium per Menu Item (mg)"), div(class="chart-box-sub","Mean sodium content"), plotlyOutput("sodChart", height="320px")))
+                                 )
+                        ),
+                        tabPanel("Protein & Fat", br(),
+                                 fluidRow(
+                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Protein per Menu Item (g)"), plotlyOutput("protChart", height="320px"))),
+                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Total Fat per Menu Item (g)"), plotlyOutput("fatChart", height="320px")))
+                                 )
+                        )
+                      )
+             ),
+             
+             tabPanel("\U0001f4ca Obesity",
+                      div(class="section-header",
+                          div(div(class="section-label","State Health Data"),
+                              div(class="section-title","Obesity Rates Across America")),
+                          div(class="section-meta","Source: CDC BRFSS · 2023")
+                      ),
+                      tabsetPanel(
+                        tabPanel("State Ranking", br(),
+                                 fluidRow(
+                                   column(6, div(class="chart-box", div(class="chart-box-title","Highest Obesity Rates — Top 15 States"), div(class="chart-box-sub","Adult obesity prevalence (%)"), plotlyOutput("obHighChart", height="440px"))),
+                                   column(6, div(class="chart-box", div(class="chart-box-title","Lowest Obesity Rates — Bottom 10 States"), div(class="chart-box-sub","Adult obesity prevalence (%)"), plotlyOutput("obLowChart", height="440px")))
+                                 )
+                        ),
+                        tabPanel("All States Table", br(), DTOutput("obTable"))
+                      )
+             ),
+             
+             tabPanel("Poverty",
+                      div(class="section-header",
+                          div(div(class="section-label","Economic Context"),
+                              div(class="section-title","Poverty Rates by State")),
+                          div(class="section-meta","Source: USDA SAIPE · 2023")
+                      ),
+                      p(class="page-blurb",
+                        "Poverty and poor health outcomes tend to have correlation in America. States with the highest poverty rates (Louisiana, Mississippi, New Mexico, and West Virginia) also consistently rank among the highest for obesity. The scatter plot to the right makes this relationship visible: as poverty rates rise, obesity rates tend to rise with them. This is no coincidence. In high-poverty areas, fast food is often the most affordable and accessible source of calories, fresh grocery options are scarce, and the chronic stress of financial insecurity compounds poor health outcomes."),
+                      fluidRow(
+                        column(6, div(class="chart-box", div(class="chart-box-title","Highest Poverty Rates — Top 15 States"), div(class="chart-box-sub","% of all people in poverty · 2023"), plotlyOutput("povChart", height="440px"))),
+                        column(6, div(class="chart-box", div(class="chart-box-title","Poverty vs. Obesity Correlation"), div(class="chart-box-sub","Each dot = one state. Hover for details."), plotlyOutput("scatterChart", height="440px")))
+                      )
+             ),
+             
+             tabPanel("Demographics",
+                      div(class="section-header",
+                          div(div(class="section-label","Demographics · Food Environment Atlas 2025"),
+                              div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
+                          div(class="section-meta","51 U.S. states · Bubble size = Fast Food per 1k people")
+                      ),
+                      p(class="page-blurb",
+                        "Research consistently links fast food density to higher rates of obesity and diet-related illness, particularly in lower-income and minority communities where access to fresh, affordable food is limited. At the same time, poverty shapes food choices in complex ways: fast food is often the most accessible and affordable option available."),
+                      div(class="bubble-controls",
+                          div(
+                            tags$label("Race Group", class="control-label"),
+                            selectInput("raceGroup", label=NULL,
+                                        choices=c("% White"="white", "% Black"="black", "% Hispanic"="hispanic"),
+                                        selected="white", width="200px")
+                          ),
+                          div(class="bubble-legend",
+                              tags$span(style="font-family:var(--mono);font-size:.7rem;color:var(--brown);",
+                                        HTML("Bubble size = fast food / 1k people &nbsp;&middot;&nbsp; Color intensity = % share of selected race &nbsp;&middot;&nbsp; Hover for details"))
+                          )
+                      ),
+                      div(class="chart-box",
+                          div(class="chart-box-title", "Food Insecurity vs. Median Household Income — State Level"),
+                          div(class="chart-box-sub", "X = food insecurity rate \u00b7 Y = median household income \u00b7 Size = fast food per 1k \u00b7 Color = % selected race group \u00b7 Hover for state details"),
+                          plotlyOutput("demoBubbleChart", height="620px")
+                      )
+             ),
+             
+             tabPanel("Map",
+                      div(class="section-header",
+                          div(div(class="section-label","Interactive Map"),
+                              div(class="section-title","Fast Food Across America")),
+                          div(class="section-meta","Source: Datafiniti / Kaggle · 9,999 locations")
+                      ),
+                      fluidRow(
+                        column(9,
+                               div(class="map-control-row",
+                                   div(style="display:flex;align-items:center;gap:.6rem;",
+                                       tags$label(style="font-family:var(--mono);font-size:.75rem;color:var(--brown);margin:0;","Map Overlay:"),
+                                       selectInput("mapOverlay", NULL,
+                                                   choices=c("None (Chain Colors)"="none",
+                                                             "Obesity Rate by County"="obesity",
+                                                             "Poverty Rate by County"="poverty"),
+                                                   width="220px")
+                                   ),
+                                   div(class="map-counter-text", textOutput("mapCounter", inline=TRUE))
+                               ),
+                               leafletOutput("ffMap", height="580px"),
+                               uiOutput("overlayLegend")
+                        ),
+                        column(3,
+                               div(class="filter-panel",
+                                   div(class="chart-box-title","Filter Chains"),
+                                   div(class="chart-box-sub","Click to toggle chains on/off"),
+                                   actionButton("toggleAllChains","Deselect All", class="btn-filter-toggle"),
+                                   uiOutput("chainFilterUI")
+                               )
+                        )
+                      )
+             ),
+             
+             tabPanel("Compare",
+                      div(class="section-header",
+                          div(div(class="section-label","Geographic Comparison · USDA Food Environment Atlas 2025"),
+                              div(class="section-title","Compare Any Two Variables, County by County")),
+                          div(class="section-meta","3,153 U.S. counties · Obesity, Diabetes, Poverty, Food Security & more")
+                      ),
+                      div(class="compare-pickers",
+                          div(class="compare-picker-box",
+                              span(class="compare-map-label left","Left Map — Variable A"),
+                              selectInput("compareVarA", NULL, width="100%",
+                                          choices=list(
+                                            "Health"        = c("Obesity Rate by County % (2023)"="ObesityRate2022","Diabetes Rate % (2019)"="DiabetesRate2019","Physically Active HS % (2021)"="PctHSPhysActive2021"),
+                                            "Food Security" = c("Food Insecurity % (2021-23)"="FoodInsecPct2123","Very Low Food Security % (2021-23)"="VeryLowFoodSecPct2123","Low Food Access % (2019)"="PctLowAccess2019","Low Income + Low Access %"="PctLowIncLowAccess2019","Children Low Access %"="PctChildLowAccess2019"),
+                                            "Economics"     = c("Poverty Rate % (2021)"="PovRate2021","Child Poverty Rate % (2021)"="ChildPovRate2021","Deep Poverty Rate % (2021)"="DeepPovRate2021","Median HH Income $ (2021)"="MedianHHInc2021","SNAP Participation % (2022)"="SNAPPct2022","School Lunch % (2021)"="SchoolLunchPct2021"),
+                                            "Food Env."     = c("Fast Food per 1k (2020)"="FFRPer1k2020","Grocery Stores per 1k (2020)"="GrocPer1k2020","Dollar Stores per 1k (2020)"="DollarPer1k2020","Conv Stores per 1k (2020)"="ConvPer1k2020","Rec Facilities per 1k (2020)"="RecFacPer1k2020","Farmers Markets per 1k (2018)"="FarmMktPer1k2018"),
+                                            "Demographics"  = c("% White (2020)"="PctWhite2020","% Black (2020)"="PctBlack2020","% Hispanic (2020)"="PctHisp2020","% Age 65+ (2020)"="Pct65Plus2020","% Under 18 (2020)"="PctUnder182020")
+                                          ), selected="ObesityRate2022")
+                          ),
+                          div(class="compare-vs","vs"),
+                          div(class="compare-picker-box",
+                              span(class="compare-map-label right","Right Map — Variable B"),
+                              selectInput("compareVarB", NULL, width="100%",
+                                          choices=list(
+                                            "Health"        = c("Obesity Rate by County % (2023)"="ObesityRate2022","Diabetes Rate % (2019)"="DiabetesRate2019","Physically Active HS % (2021)"="PctHSPhysActive2021"),
+                                            "Food Security" = c("Food Insecurity % (2021-23)"="FoodInsecPct2123","Very Low Food Security % (2021-23)"="VeryLowFoodSecPct2123","Low Food Access % (2019)"="PctLowAccess2019","Low Income + Low Access %"="PctLowIncLowAccess2019","Children Low Access %"="PctChildLowAccess2019"),
+                                            "Economics"     = c("Poverty Rate % (2021)"="PovRate2021","Child Poverty Rate % (2021)"="ChildPovRate2021","Deep Poverty Rate % (2021)"="DeepPovRate2021","Median HH Income $ (2021)"="MedianHHInc2021","SNAP Participation % (2022)"="SNAPPct2022","School Lunch % (2021)"="SchoolLunchPct2021"),
+                                            "Food Env."     = c("Fast Food per 1k (2020)"="FFRPer1k2020","Grocery Stores per 1k (2020)"="GrocPer1k2020","Dollar Stores per 1k (2020)"="DollarPer1k2020","Conv Stores per 1k (2020)"="ConvPer1k2020","Rec Facilities per 1k (2020)"="RecFacPer1k2020","Farmers Markets per 1k (2018)"="FarmMktPer1k2018"),
+                                            "Demographics"  = c("% White (2020)"="PctWhite2020","% Black (2020)"="PctBlack2020","% Hispanic (2020)"="PctHisp2020","% Age 65+ (2020)"="Pct65Plus2020","% Under 18 (2020)"="PctUnder182020")
+                                          ), selected="PovRate2021")
+                          )
+                      ),
+                      div(class="compare-maps-wrap",
+                          div(class="compare-map-panel",
+                              span(class="compare-map-label left", textOutput("compareLabelA", inline=TRUE)),
+                              br(), leafletOutput("compareMapA", height="420px"), br(),
+                              uiOutput("compareLegendA")
+                          ),
+                          div(class="compare-map-panel",
+                              span(class="compare-map-label right", textOutput("compareLabelB", inline=TRUE)),
+                              br(), leafletOutput("compareMapB", height="420px"), br(),
+                              uiOutput("compareLegendB")
+                          )
+                      )
+             ),
+             
+             tabPanel("Meet the Team", meetTeamUI())
   ),
-
+  
   div(class="dash-footer",
       div(HTML("<strong>Fast Food & Health in America</strong> — Interactive Shiny Dashboard")),
       div("CDC · USDA ERS · FDA · US Census · QSR Magazine · KFF · BRFSS · Datafiniti")
