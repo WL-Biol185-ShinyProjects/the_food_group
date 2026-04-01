@@ -454,7 +454,9 @@ ui <- fluidPage(
                               uiOutput("compareLegendB")
                           )
                       )
-             )
+             ),
+             
+             tabPanel("Meet the Team", meetTeamUI())
   ),
   
   div(class="dash-footer",
