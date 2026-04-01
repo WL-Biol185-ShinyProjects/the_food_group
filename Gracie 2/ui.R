@@ -26,8 +26,6 @@ aboutTabUI <- function() {
     ")),
     div(class="about-page",
         tags$div(style = "height:40px;"),
-        tags$h2("Stats About Fast Food", style="text-align:center; font-family:'Playfair Display',Georgia,serif; font-size:1.75rem; font-weight:700; color:#1a0f00; margin:0 0 24px;"),
-        div(class = "stat-strip",
             div(class = "stat-card",
                 div(class = "stat-number", "200K+"),
                 div(class = "stat-label",  "Fast-food locations\nacross the U.S.")
