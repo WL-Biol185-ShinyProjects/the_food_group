@@ -376,7 +376,9 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Demographics · Food Environment Atlas 2025"),
                               div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
-                          div(class="section-meta","51 U.S. states · Bubble size = Fast Food per 1k people")
+                          div(class="section-meta",tags$a(href = "https://www.ers.usda.gov/data-products/food-environment-atlas/data-access-and-documentation-downloads",
+                                                          "USDA: Food Environment Atlas",
+                                                          target = "_blank"))
                       ),
                       p(class="page-blurb",
                         "Research consistently links fast food density to higher rates of obesity and diet-related illness, particularly in lower-income and minority communities where access to fresh, affordable food is limited. At the same time, poverty shapes food choices in complex ways: fast food is often the most accessible and affordable option available."),
