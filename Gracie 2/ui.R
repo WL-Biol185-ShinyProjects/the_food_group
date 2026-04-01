@@ -76,7 +76,7 @@ aboutTabUI <- function() {
             )
         )
     )
-  )
+  
 }
 
 
