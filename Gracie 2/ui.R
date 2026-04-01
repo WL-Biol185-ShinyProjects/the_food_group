@@ -279,8 +279,7 @@ ui <- fluidPage(
       div(class="hero-eyebrow", "American Fast Food & Public Health · Data Explorer"),
       h1(HTML("Fast Food, Health, and Poverty in America")),
       p(class="hero-desc",
-        "An interactive look at how fast food chains, nutritional choices, obesity rates, poverty,
-         and demographics intersect across the United States — powered by real datasets."),
+        "Visualizing the relationships between fast food access, nutritional habits, obesity, and income across U.S. communities."),
       div(class="hero-kpis")
   ),
   
