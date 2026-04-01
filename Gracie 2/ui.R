@@ -52,7 +52,7 @@ aboutTabUI <- function() {
         tags$div(
           style = "text-align:center; margin:0 auto 48px; max-width:860px; padding:0 5%;",
           tags$img(
-            src = "your-image-url-or-path.jpg",
+            src = "https://positworkbench.wlu.edu/s/9595f405ea03713743a48/files/the_food_group/the_food_group/Gracie%202/WWW/fast%20food.png",
             alt = "Fast food image",
             style = "width:100%; max-width:860px; border-radius:10px; object-fit:cover;"
           )
@@ -279,8 +279,7 @@ ui <- fluidPage(
       div(class="hero-eyebrow", "American Fast Food & Public Health · Data Explorer"),
       h1(HTML("Fast Food, Health, and Poverty in America")),
       p(class="hero-desc",
-        "An interactive look at how fast food chains, nutritional choices, obesity rates, poverty,
-         and demographics intersect across the United States — powered by real datasets."),
+        "Visualizing the relationships between fast food access, nutritional habits, obesity, and income across U.S. communities."),
       div(class="hero-kpis")
   ),
   
