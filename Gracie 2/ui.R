@@ -268,7 +268,7 @@ ui <- fluidPage(
       .dash-footer { background:var(--dark); color:rgba(250,247,242,.4); font-family:var(--mono); font-size:.7rem; padding:1.5rem 3rem; display:flex; justify-content:space-between; align-items:center; margin-top:2rem; }
       .dash-footer strong { color:var(--cream); }
 
-      .page-blurb { font-size:.97rem; line-height:1.78; max-width:860px; color:var(--ink); margin-bottom:2rem; }
+      .page-blurb { font-size:1.3rem; line-height:1.78; max-width:860px; color:var(--ink); margin-bottom:2rem; }
 
       @media(max-width:900px) { .tab-pane { padding:1.5rem; } .hero { padding:2rem 1.5rem; } }
     "))
