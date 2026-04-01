@@ -299,72 +299,173 @@ server <- function(input, output, session) {
       config(displayModeBar=FALSE)
   })
 
-  # ── NUTRITION ───────────────────────────────────────────────
-  output$nutrCards <- renderUI({
+  # ── NUTRITION: RADAR CHART ───────────────────────────────────
+  output$nutrRadarChart <- renderPlotly({
     req(nutr_summary)
-    cards <- lapply(seq_len(nrow(nutr_summary)), function(i) {
-      r <- nutr_summary[i,]
-      div(class="nutr-card",
-          div(class="nutr-card-name", r$restaurant),
-          div(class="nutr-metric", span(class="nutr-metric-label","Calories"), span(class="nutr-metric-val",paste0(r$calories," kcal"))),
-          div(class="nutr-metric", span(class="nutr-metric-label","Sodium"),   span(class="nutr-metric-val",paste0(r$sodium," mg"))),
-          div(class="nutr-metric", span(class="nutr-metric-label","Fat"),      span(class="nutr-metric-val",paste0(r$total_fat,"g"))),
-          div(class="nutr-metric", span(class="nutr-metric-label","Protein"),  span(class="nutr-metric-val",paste0(r$protein,"g"))),
-          div(class="nutr-metric", span(class="nutr-metric-label","Sugar"),    span(class="nutr-metric-val",paste0(r$sugar,"g")))
+    # Normalize each metric 0-100 relative to max across all chains
+    d <- nutr_summary
+    norm <- function(x) round((x - min(x, na.rm=TRUE)) / max(max(x,na.rm=TRUE) - min(x,na.rm=TRUE), 1e-6) * 100, 1)
+    d <- d %>% mutate(
+      cal_n  = norm(calories),
+      sod_n  = norm(sodium),
+      fat_n  = norm(total_fat),
+      prot_n = norm(protein),
+      sug_n  = norm(sugar)
+    )
+    cats <- c("Calories","Sodium","Fat","Protein","Sugar","Calories")
+    pal  <- colorRampPalette(c("#d4380d","#e67e22","#f39c12","#27ae60","#2980b9","#702082","#8e44ad","#16a085"))(nrow(d))
+    p <- plot_ly(type="scatterpolar", fill="toself", mode="lines")
+    for (i in seq_len(nrow(d))) {
+      r <- d[i,]
+      vals <- c(r$cal_n, r$sod_n, r$fat_n, r$prot_n, r$sug_n, r$cal_n)
+      p <- p %>% add_trace(
+        r    = vals, theta = cats, name = r$restaurant,
+        line = list(color=pal[i], width=2),
+        fillcolor = paste0(pal[i],"22"),
+        hovertemplate = paste0("<b>", r$restaurant, "</b><br>",
+                               "Calories: ", r$calories, " kcal<br>",
+                               "Sodium: ", r$sodium, " mg<br>",
+                               "Fat: ", r$total_fat, "g<br>",
+                               "Protein: ", r$protein, "g<br>",
+                               "Sugar: ", r$sugar, "g<extra></extra>")
       )
+    }
+    p %>% layout(
+      polar = list(radialaxis=list(visible=TRUE, range=c(0,100), tickfont=list(size=10), gridcolor="#ede8df"),
+                   angularaxis=list(tickfont=list(size=12, family="DM Sans"))),
+      paper_bgcolor="#faf7f2",
+      legend=list(orientation="v", font=list(size=11)),
+      margin=list(l=40,r=40,t=20,b=20),
+      font=list(family="DM Sans",size=13)
+    ) %>% config(displayModeBar=FALSE)
+  })
+  
+  # ── NUTRITION: CALORIES vs SODIUM SCATTER ───────────────────
+  output$nutrScatterChart <- renderPlotly({
+    req(nutr_df)
+    d <- nutr_df %>% filter(!is.na(calories), !is.na(sodium))
+    pal <- c("Mcdonalds"="#FFC72C","Burger King"="#FF7F00","Wendys"="#E2231A",
+             "Taco Bell"="#702082","Subway"="#008C15","Chick Fil-A"="#DD0031",
+             "Arbys"="#8B2020","Sonic"="#FFAA00","Dairy Queen"="#0066AA")
+    cols <- sapply(d$restaurant, function(r) {
+      v <- pal[r]; if (is.na(v)) "#888888" else v
     })
-    div(class="nutr-grid", tagList(cards))
-  })
-
-  nutr_bar <- function(df, col, color_fn, fmt) {
-    d <- df %>% arrange(desc(.data[[col]]))
-    plot_ly(d, x=d[[col]], y=~reorder(restaurant, d[[col]]), type="bar", orientation="h",
-            marker=list(color=sapply(d[[col]], color_fn)),
-            hovertemplate=paste0("%{y}: %{x}", fmt, "<extra></extra>")) %>%
+    plot_ly(d, x=~sodium, y=~calories, text=~paste0("<b>",item,"</b><br>",restaurant,"<br>",
+                                                    calories," kcal · ",sodium,"mg sodium"),
+            type="scatter", mode="markers",
+            marker=list(color=cols, size=6, opacity=0.65,
+                        line=list(color="rgba(255,255,255,0.4)",width=0.5)),
+            hoverinfo="text",
+            hovertemplate="%{text}<extra></extra>") %>%
       layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(gridcolor="#ede8df", tickfont=list(size=12), fixedrange=TRUE),
-             yaxis=list(title="", tickfont=list(size=12), fixedrange=TRUE),
-             margin=list(l=120,r=20,t=10,b=30), font=list(family="DM Sans", size=13)) %>%
-      config(displayModeBar=FALSE)
-  }
-  output$calChart  <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"calories",  function(v) ifelse(v>600,"#c0392b",ifelse(v>480,"#e67e22","#27ae60")), " kcal") })
-  output$sodChart  <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"sodium",    function(v) ifelse(v>1400,"#c0392b",ifelse(v>1100,"#e67e22","#16a085")), " mg") })
-  output$protChart <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"protein",   function(v) "#27ae60", "g") })
-  output$fatChart  <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"total_fat", function(v) ifelse(v>30,"#c0392b",ifelse(v>20,"#e67e22","#27ae60")), "g") })
-
-  # ── OBESITY ─────────────────────────────────────────────────
-  output$obHighChart <- renderPlotly({
-    req(ob_df)
-    d <- head(ob_df,15) %>% arrange(obesity)
-    plot_ly(d, x=~obesity, y=~reorder(state,obesity), type="bar", orientation="h",
-            marker=list(color=ob_color(d$obesity)),
-            hovertemplate="%{y}: %{x}%<extra></extra>") %>%
-      layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df", range=c(0,40), tickfont=list(size=12), fixedrange=TRUE),
-             yaxis=list(title="", tickfont=list(size=12), fixedrange=TRUE),
-             margin=list(l=160,r=20,t=10,b=50), font=list(family="DM Sans", size=13)) %>%
+             xaxis=list(title="Sodium (mg)", gridcolor="#ede8df", tickfont=list(size=11), fixedrange=TRUE),
+             yaxis=list(title="Calories (kcal)", gridcolor="#ede8df", tickfont=list(size=11), fixedrange=TRUE),
+             margin=list(l=60,r=20,t=10,b=60),
+             font=list(family="DM Sans",size=13),
+             shapes=list(
+               list(type="line", x0=2300, x1=2300, y0=0, y1=1, yref="paper",
+                    line=list(color="#c0392b", dash="dot", width=1.2))
+             ),
+             annotations=list(list(x=2300, y=0.98, xref="x", yref="paper",
+                                   text="Daily sodium limit", showarrow=FALSE,
+                                   font=list(size=9.5, color="#c0392b", family="Space Mono"),
+                                   xanchor="left"))) %>%
       config(displayModeBar=FALSE)
   })
-  output$obLowChart <- renderPlotly({
+  
+  # ── OBESITY: ALL STATES RANKED ───────────────────────────────
+  output$obStateChart <- renderPlotly({
     req(ob_df)
-    d <- tail(ob_df,10) %>% arrange(obesity)
-    plot_ly(d, x=~obesity, y=~reorder(state,obesity), type="bar", orientation="h",
-            marker=list(color=ob_color(d$obesity)),
-            hovertemplate="%{y}: %{x}%<extra></extra>") %>%
+    d <- ob_df %>% arrange(obesity)
+    col_vals <- colorRampPalette(c("#27ae60","#f39c12","#e67e22","#c0392b","#7b0000"))(nrow(d))
+    plot_ly(d, x=~obesity, y=~reorder(state, obesity), type="bar", orientation="h",
+            marker=list(color=col_vals),
+            hovertemplate="<b>%{y}</b>: %{x}%<extra></extra>") %>%
       layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df", range=c(0,40), tickfont=list(size=12), fixedrange=TRUE),
-             yaxis=list(title="", tickfont=list(size=12), fixedrange=TRUE),
-             margin=list(l=160,r=20,t=10,b=50), font=list(family="DM Sans", size=13)) %>%
+             xaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df",
+                        range=c(18,40), tickfont=list(size=11), fixedrange=TRUE),
+             yaxis=list(title="", tickfont=list(size=10), fixedrange=TRUE),
+             margin=list(l=130,r=20,t=10,b=50),
+             font=list(family="DM Sans",size=12)) %>%
       config(displayModeBar=FALSE)
   })
-  output$obTable <- renderDT({
-    req(ob_df)
-    ob_df %>% arrange(desc(obesity)) %>%
-      mutate(Rank=row_number(), `Obesity Rate`=paste0(obesity,"%")) %>%
-      select(Rank, State=state, `Obesity Rate`) %>%
-      datatable(rownames=FALSE, options=list(pageLength=25), class="stripe hover")
+  
+  # ── OBESITY: BY RACE/ETHNICITY ────────────────────────────────
+  output$obRaceChart <- renderPlotly({
+    req(brfss_df)
+    d <- brfss_df %>%
+      filter(StratificationCategory1 == "Race/Ethnicity",
+             grepl("who have obesity", Question),
+             LocationAbbr == "US") %>%
+      group_by(race = Stratification1) %>%
+      summarise(obesity = round(mean(value, na.rm=TRUE), 1), .groups="drop") %>%
+      filter(!is.na(obesity), race != "Other") %>%
+      arrange(obesity)
+    
+    if (nrow(d) == 0) {
+      # fallback: use national aggregated across states
+      d <- brfss_df %>%
+        filter(StratificationCategory1 == "Race/Ethnicity",
+               grepl("who have obesity", Question),
+               LocationDesc != "National") %>%
+        group_by(race = Stratification1) %>%
+        summarise(obesity = round(mean(value, na.rm=TRUE), 1), .groups="drop") %>%
+        filter(!is.na(obesity), race != "Other") %>%
+        arrange(obesity)
+    }
+    
+    race_cols <- c(
+      "Non-Hispanic White"="#4e9af1","Non-Hispanic Black"="#e05c30",
+      "Hispanic"="#44b864","Asian"="#f0c040",
+      "American Indian/Alaska Native"="#8e44ad","Hawaiian/Pacific Islander"="#16a085",
+      "2 or more races"="#95a5a6"
+    )
+    cols <- sapply(d$race, function(r) { v <- race_cols[r]; if(is.na(v)) "#888" else v })
+    
+    plot_ly(d, x=~obesity, y=~reorder(race, obesity), type="bar", orientation="h",
+            marker=list(color=cols),
+            hovertemplate="<b>%{y}</b>: %{x}%<extra></extra>") %>%
+      layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
+             xaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df",
+                        tickfont=list(size=10), fixedrange=TRUE),
+             yaxis=list(title="", tickfont=list(size=10), fixedrange=TRUE),
+             margin=list(l=200,r=20,t=10,b=40),
+             font=list(family="DM Sans",size=12)) %>%
+      config(displayModeBar=FALSE)
   })
-
+  
+  # ── OBESITY: PHYSICAL INACTIVITY SCATTER ─────────────────────
+  output$obActivityChart <- renderPlotly({
+    req(brfss_df, ob_df)
+    inactivity <- brfss_df %>%
+      filter(StratificationCategory1 == "Total",
+             grepl("no leisure-time physical activity", Question)) %>%
+      select(state_abbr=LocationAbbr, state_name=LocationDesc, inactivity=value) %>%
+      filter(state_abbr != "US", !is.na(inactivity))
+    
+    merged <- ob_df %>%
+      mutate(state_abbr = STATE_ABBR[state]) %>%
+      filter(!is.na(state_abbr)) %>%
+      inner_join(inactivity, by="state_abbr")
+    
+    if (nrow(merged) == 0) return(NULL)
+    
+    plot_ly(merged, x=~inactivity, y=~obesity,
+            text=~paste0("<b>",state,"</b><br>Inactivity: ",inactivity,"%<br>Obesity: ",obesity,"%"),
+            type="scatter", mode="markers",
+            marker=list(color=ob_color(merged$obesity), size=9, opacity=0.85,
+                        line=list(color="white",width=1)),
+            hoverinfo="text", hovertemplate="%{text}<extra></extra>") %>%
+      layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
+             xaxis=list(title="No Leisure Physical Activity (%)", gridcolor="#ede8df",
+                        tickfont=list(size=10), fixedrange=TRUE),
+             yaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df",
+                        tickfont=list(size=10), fixedrange=TRUE),
+             margin=list(l=55,r=20,t=10,b=50),
+             font=list(family="DM Sans",size=12)) %>%
+      config(displayModeBar=FALSE)
+  })
+  
   # ── POVERTY ─────────────────────────────────────────────────
   output$povChart <- renderPlotly({
     req(pov_df)
