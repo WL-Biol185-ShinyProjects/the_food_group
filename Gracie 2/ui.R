@@ -279,7 +279,10 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Top 50 Fast Food Chains"),
                               div(class="section-title","Sales & Market Presence")),
-                          div(class="section-meta","Source: QSR Magazine · 2021")
+                          div(class="section-meta",
+                              tags$a(href = "https://www.kaggle.com/datasets/iamsouravbanerjee/top-50-fastfood-chains-in-usa", 
+                                     "Data: Top 50 Fast Food Chains in USA", 
+                                     target = "_blank"))
                       ),
                       p(class="page-blurb",
                         "As fast food has become a defining feature of the American food landscape, with over 200,000 locations nationwide, having an understanding of where it concentrates, who it serves, and what it contains has real public health implications."),
