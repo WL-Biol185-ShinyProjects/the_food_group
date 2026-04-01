@@ -25,7 +25,12 @@ aboutTabUI <- function() {
       .about-footer-note strong { color:#2c2318; }
     ")),
     div(class="about-page",
-        tags$div(style = "height:40px;"),
+        # Stat strip
+        tags$div(style = "height:40px;"), # spacer
+        
+        tags$h2("Stats About Fast Food"),
+        
+        div(class = "stat-strip",
             div(class = "stat-card",
                 div(class = "stat-number", "200K+"),
                 div(class = "stat-label",  "Fast-food locations\nacross the U.S.")
@@ -43,10 +48,12 @@ aboutTabUI <- function() {
                 div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
             )
         ),
+        
+        
         div(class="about-content",
             div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has since evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
                 tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
             ),
             tags$hr(class="about-divider"),
@@ -54,11 +61,11 @@ aboutTabUI <- function() {
                 tags$h2("What We Examine"),
                 tags$p("This project uses interactive data visualizations to examine the relationship between fast food and public health. By analyzing nutritional information, restaurant distribution, and state-level data on obesity and poverty, this project highlights how fast food consumption is connected to broader social and economic patterns."),
                 div(class="topic-row",
-                    span(class="topic-pill", HTML("Nutritional Data")),
-                    span(class="topic-pill", HTML("Restaurant Distribution")),
-                    span(class="topic-pill", HTML("Obesity by State")),
-                    span(class="topic-pill", HTML("Poverty & Economics")),
-                    span(class="topic-pill", HTML("Race & Demographics"))
+                    span(class="topic-pill", HTML("&#x1F354; Nutritional Data")),
+                    span(class="topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
+                    span(class="topic-pill", HTML("&#x1F4CA; Obesity by State")),
+                    span(class="topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
+                    span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
                 )
             ),
             tags$hr(class="about-divider"),
@@ -76,9 +83,8 @@ aboutTabUI <- function() {
             )
         )
     )
-  
+  )
 }
-
 
 # ── MEET THE TEAM PAGE UI ────────────────────────────────────
 meetTeamUI <- function() {
