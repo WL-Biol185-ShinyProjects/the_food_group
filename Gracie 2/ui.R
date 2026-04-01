@@ -52,7 +52,7 @@ aboutTabUI <- function() {
         tags$div(
           style = "text-align:center; margin:0 auto 48px; max-width:860px; padding:0 5%;",
           tags$img(
-            src = "~/the_food_group/the_food_group/Gracie 2/WWW",
+            src = "https://positworkbench.wlu.edu/s/9595f405ea03713743a48/files/the_food_group/the_food_group/Gracie%202/WWW/fast%20food.png",
             alt = "Fast food image",
             style = "width:100%; max-width:860px; border-radius:10px; object-fit:cover;"
           )
