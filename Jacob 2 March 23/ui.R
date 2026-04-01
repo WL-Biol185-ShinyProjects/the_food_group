@@ -24,8 +24,8 @@ aboutTabUI <- function() {
       .about-footer-note { background:#fff; border:1px solid #e8dfd0; border-radius:10px; padding:24px 28px; font-size:.88rem; color:#7a6a57; line-height:1.7; margin-top:12px; }
       .about-footer-note strong { color:#2c2318; }
     ")),
+  )
     div(class="about-page",
-<<<<<<< HEAD
         # Stat strip
         tags$div(style = "height:40px;"), # spacer
         
@@ -47,15 +47,13 @@ aboutTabUI <- function() {
             div(class = "stat-card",
                 div(class = "stat-number", "$331B"),
                 div(class = "stat-label",  "U.S. fast-food industry\nrevenue (2023)")
-            )
-=======
+            ),
         tags$div(style="height:40px;"),
         div(class="stat-strip",
             div(class="stat-card", div(class="stat-number","200K+"), div(class="stat-label","Fast-food locations across the U.S.")),
             div(class="stat-card", div(class="stat-number","~36%"),  div(class="stat-label","Adults who eat fast food daily")),
             div(class="stat-card", div(class="stat-number","50"),    div(class="stat-label","Top chains analyzed")),
             div(class="stat-card", div(class="stat-number","$331B"), div(class="stat-label","U.S. fast-food industry revenue (2023)"))
->>>>>>> e9d56bdd6891771d5ba2c2d3cf2c3a5dc540877e
         ),
         div(class="about-content",
             
