@@ -17,7 +17,7 @@ aboutTabUI <- function() {
       .about-content { max-width:860px; margin:0 auto; padding:60px 5% 0; }
       .about-section { margin-bottom:48px; }
       .about-section h2 { font-family:'Playfair Display',Georgia,serif; font-size:1.55rem; font-weight:700; color:#1a0f00; margin:0 0 16px; padding-left:16px; border-left:4px solid #FFC72C; }
-      .about-section p { font-size:1rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
+      .about-section p { font-size:1.7rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
       .about-divider { border:none; border-top:1px solid #e8dfd0; margin:0 0 48px; }
       .topic-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
       .topic-pill { background:#fff3d6; border:1px solid #e0c97a; border-radius:999px; padding:5px 16px; font-size:.82rem; font-weight:500; color:#7a4f00; }
@@ -27,8 +27,6 @@ aboutTabUI <- function() {
     div(class="about-page",
         # Stat strip
         tags$div(style = "height:40px;"), # spacer
-        
-        tags$h2("Stats About Fast Food"),
         
         div(class = "stat-strip",
             div(class = "stat-card",
@@ -177,13 +175,13 @@ ui <- fluidPage(
       .hero-eyebrow { font-family:var(--mono); font-size:.75rem; letter-spacing:.15em; text-transform:uppercase; color:var(--orange); margin-bottom:.8rem; display:inline-block; padding:.3rem .7rem; border:1px solid rgba(230,126,34,.4); }
       .hero h1 { font-family:var(--serif); font-size:clamp(2.5rem,5vw,5rem); font-weight:400; line-height:.95; letter-spacing:-.02em; margin-bottom:1rem; }
       .hero h1 em { color:var(--orange); font-style:italic; }
-      .hero-desc { color:rgba(250,247,242,.65); font-size:1rem; max-width:600px; line-height:1.75; margin-bottom:2rem; }
+      .hero-desc { color:rgba(250,247,242,.65); font-size:1.6rem; max-width:600px; line-height:1.75; margin-bottom:2rem; }
       .hero-kpis { display:flex; gap:3rem; flex-wrap:wrap; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,.1); }
       .kpi-num { font-family:var(--serif); font-size:2.8rem; color:var(--orange); line-height:1; }
       .kpi-label { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(250,247,242,.5); margin-top:.3rem; }
 
       .navbar { background:var(--dark) !important; border:none !important; border-radius:0 !important; margin-bottom:0 !important; border-bottom:2px solid var(--accent) !important; min-height:52px !important; }
-      .navbar-default .navbar-nav>li>a { color:rgba(250,247,242,.6) !important; font-family:var(--mono) !important; font-size:.75rem !important; letter-spacing:.1em !important; text-transform:uppercase !important; padding:16px 18px !important; line-height:1.2 !important; }
+      .navbar-default .navbar-nav>li>a { color:rgba(250,247,242,.6) !important; font-family:var(--mono) !important; font-size:1.3rem !important; letter-spacing:.1em !important; text-transform:uppercase !important; padding:16px 18px !important; line-height:1.2 !important; }
       .navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>li>a:hover { color:var(--orange) !important; background:rgba(255,255,255,.07) !important; }
       .navbar-brand { display:none !important; }
       .navbar-collapse { padding:0 !important; }
