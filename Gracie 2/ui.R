@@ -56,11 +56,11 @@ aboutTabUI <- function() {
                 tags$h2("What We Examine"),
                 tags$p("This project uses interactive data visualizations to examine the relationship between fast food and public health. By analyzing nutritional information, restaurant distribution, and state-level data on obesity and poverty, this project highlights how fast food consumption is connected to broader social and economic patterns."),
                 div(class="topic-row",
-                    span(class="topic-pill", HTML("&#x1F354; Nutritional Data")),
-                    span(class="topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
-                    span(class="topic-pill", HTML("&#x1F4CA; Obesity by State")),
-                    span(class="topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
-                    span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
+                    span(class="topic-pill", HTML("Nutritional Data")),
+                    span(class="topic-pill", HTML("Restaurant Distribution")),
+                    span(class="topic-pill", HTML("Obesity by State")),
+                    span(class="topic-pill", HTML("Poverty & Economics")),
+                    span(class="topic-pill", HTML("Race & Demographics"))
                 )
             ),
             tags$hr(class="about-divider"),
@@ -323,7 +323,7 @@ ui <- fluidPage(
                       )
              ),
              
-             tabPanel("\U0001f4ca Obesity",
+             tabPanel("Obesity",
                       div(class="section-header",
                           div(div(class="section-label","State Health Data"),
                               div(class="section-title","Obesity Rates Across America")),
