@@ -1,6 +1,0 @@
----
-title: "top 50 fast food"
-output: html_document
-date: "2026-02-18"
----
- ("fast_food_chains", "us_sales_millions)", "avg_sale_per_unit_thousands","franchised_stores","company_stores", "2021_total_units", "total_change_units_2020"
