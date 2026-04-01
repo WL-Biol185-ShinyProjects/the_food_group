@@ -26,7 +26,7 @@ aboutTabUI <- function() {
     ")),
     div(class="about-page",
         tags$div(style = "height:40px;"),
-        tags$h2("Stats About Fast Food"),
+        tags$h2("Stats About Fast Food", style="text-align:center; font-family:'Playfair Display',Georgia,serif; font-size:1.75rem; font-weight:700; color:#1a0f00; margin:0 0 24px;"),
         div(class = "stat-strip",
             div(class = "stat-card",
                 div(class = "stat-number", "200K+"),
@@ -56,11 +56,11 @@ aboutTabUI <- function() {
                 tags$h2("What We Examine"),
                 tags$p("This project uses interactive data visualizations to examine the relationship between fast food and public health. By analyzing nutritional information, restaurant distribution, and state-level data on obesity and poverty, this project highlights how fast food consumption is connected to broader social and economic patterns."),
                 div(class="topic-row",
-                    span(class="topic-pill", HTML("Nutritional Data")),
-                    span(class="topic-pill", HTML("Restaurant Distribution")),
-                    span(class="topic-pill", HTML("Obesity by State")),
-                    span(class="topic-pill", HTML("Poverty & Economics")),
-                    span(class="topic-pill", HTML("Race & Demographics"))
+                    span(class="topic-pill", HTML("&#x1F354; Nutritional Data")),
+                    span(class="topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
+                    span(class="topic-pill", HTML("&#x1F4CA; Obesity by State")),
+                    span(class="topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
+                    span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
                 )
             ),
             tags$hr(class="about-divider"),
@@ -169,7 +169,7 @@ ui <- fluidPage(
       *, *::before, *::after { box-sizing:border-box; }
       body { background:var(--cream); color:var(--ink); font-family:var(--sans); font-size:16px; margin:0; padding:0; overflow-x:hidden; }
 
-      .hero { background:var(--dark); color:var(--cream); padding:3rem 3rem 2.5rem; border-bottom:3px solid var(--accent); }
+      .hero { background:var(--dark); color:var(--cream); padding:3rem 3rem 2.5rem; border-bottom:3px solid var(--accent); text-align:center; display:flex; flex-direction:column; align-items:center; }
       .hero-eyebrow { font-family:var(--mono); font-size:.75rem; letter-spacing:.15em; text-transform:uppercase; color:var(--orange); margin-bottom:.8rem; display:inline-block; padding:.3rem .7rem; border:1px solid rgba(230,126,34,.4); }
       .hero h1 { font-family:var(--serif); font-size:clamp(2.5rem,5vw,5rem); font-weight:400; line-height:.95; letter-spacing:-.02em; margin-bottom:1rem; }
       .hero h1 em { color:var(--orange); font-style:italic; }
@@ -320,7 +320,7 @@ ui <- fluidPage(
                       )
              ),
              
-             tabPanel("Obesity",
+             tabPanel("\U0001f4ca Obesity",
                       div(class="section-header",
                           div(div(class="section-label","State Health Data"),
                               div(class="section-title","Obesity Rates Across America")),
