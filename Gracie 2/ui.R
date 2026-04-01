@@ -186,13 +186,13 @@ ui <- fluidPage(
       .hero-eyebrow { font-family:var(--mono); font-size:.75rem; letter-spacing:.15em; text-transform:uppercase; color:var(--orange); margin-bottom:.8rem; display:inline-block; padding:.3rem .7rem; border:1px solid rgba(230,126,34,.4); }
       .hero h1 { font-family:var(--serif); font-size:clamp(2.5rem,5vw,5rem); font-weight:400; line-height:.95; letter-spacing:-.02em; margin-bottom:1rem; }
       .hero h1 em { color:var(--orange); font-style:italic; }
-      .hero-desc { color:rgba(250,247,242,.65); font-size:1rem; max-width:600px; line-height:1.75; margin-bottom:2rem; }
+      .hero-desc { color:rgba(250,247,242,.65); font-size:1.6rem; max-width:600px; line-height:1.75; margin-bottom:2rem; }
       .hero-kpis { display:flex; gap:3rem; flex-wrap:wrap; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,.1); }
       .kpi-num { font-family:var(--serif); font-size:2.8rem; color:var(--orange); line-height:1; }
-      .kpi-label { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(250,247,242,.5); margin-top:.3rem; }
+      .kpi-label { font-size:1.6rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(250,247,242,.5); margin-top:.3rem; }
 
       .navbar { background:var(--dark) !important; border:none !important; border-radius:0 !important; margin-bottom:0 !important; border-bottom:2px solid var(--accent) !important; min-height:52px !important; }
-      .navbar-default .navbar-nav>li>a { color:rgba(250,247,242,.6) !important; font-family:var(--mono) !important; font-size:.75rem !important; letter-spacing:.1em !important; text-transform:uppercase !important; padding:16px 18px !important; line-height:1.2 !important; }
+      .navbar-default .navbar-nav>li>a { color:rgba(250,247,242,.6) !important; font-family:var(--mono) !important; font-size:1.3rem !important; letter-spacing:.1em !important; text-transform:uppercase !important; padding:16px 18px !important; line-height:1.2 !important; }
       .navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>li>a:hover { color:var(--orange) !important; background:rgba(255,255,255,.07) !important; }
       .navbar-brand { display:none !important; }
       .navbar-collapse { padding:0 !important; }
