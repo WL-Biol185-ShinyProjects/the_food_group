@@ -12,8 +12,8 @@ aboutTabUI <- function() {
       .stat-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin:0 auto 56px; max-width:860px; padding:0 5%; }
       .stat-card { background:#fff; border:1px solid #e8dfd0; border-radius:10px; padding:22px 20px 18px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.04); transition:transform .18s ease,box-shadow .18s ease; }
       .stat-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
-      .stat-number { font-family:'Playfair Display',Georgia,serif; font-size:2.1rem; font-weight:700; color:#d4380d; line-height:1; margin:0 0 6px; }
-      .stat-label { font-size:.78rem; font-weight:500; color:#7a6a57; line-height:1.35; }
+      .stat-number { font-family:'Playfair Display',Georgia,serif; font-size:2.5rem; font-weight:700; color:#d4380d; line-height:1; margin:0 0 6px; }
+      .stat-label { font-size:1.2rem; font-weight:500; color:#7a6a57; line-height:1.35; }
       .about-content { max-width:860px; margin:0 auto; padding:60px 5% 0; }
       .about-section { margin-bottom:48px; }
       .about-section h2 { font-family:'Playfair Display',Georgia,serif; font-size:1.55rem; font-weight:700; color:#1a0f00; margin:0 0 16px; padding-left:16px; border-left:4px solid #FFC72C; }
