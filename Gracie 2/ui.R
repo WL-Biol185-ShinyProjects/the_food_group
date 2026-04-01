@@ -17,7 +17,7 @@ aboutTabUI <- function() {
       .about-content { max-width:860px; margin:0 auto; padding:60px 5% 0; }
       .about-section { margin-bottom:48px; }
       .about-section h2 { font-family:'Playfair Display',Georgia,serif; font-size:1.55rem; font-weight:700; color:#1a0f00; margin:0 0 16px; padding-left:16px; border-left:4px solid #FFC72C; }
-      .about-section p { font-size:1rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
+      .about-section p { font-size:1.6rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
       .about-divider { border:none; border-top:1px solid #e8dfd0; margin:0 0 48px; }
       .topic-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
       .topic-pill { background:#fff3d6; border:1px solid #e0c97a; border-radius:999px; padding:5px 16px; font-size:.82rem; font-weight:500; color:#7a4f00; }
