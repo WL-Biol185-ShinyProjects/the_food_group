@@ -17,7 +17,7 @@ aboutTabUI <- function() {
       .about-content { max-width:860px; margin:0 auto; padding:60px 5% 0; }
       .about-section { margin-bottom:48px; }
       .about-section h2 { font-family:'Playfair Display',Georgia,serif; font-size:1.55rem; font-weight:700; color:#1a0f00; margin:0 0 16px; padding-left:16px; border-left:4px solid #FFC72C; }
-      .about-section p { font-size:1.7rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
+      .about-section p { font-size:1rem; line-height:1.82; color:#3d2e1e; margin:0 0 16px; }
       .about-divider { border:none; border-top:1px solid #e8dfd0; margin:0 0 48px; }
       .topic-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
       .topic-pill { background:#fff3d6; border:1px solid #e0c97a; border-radius:999px; padding:5px 16px; font-size:.82rem; font-weight:500; color:#7a4f00; }
@@ -27,6 +27,8 @@ aboutTabUI <- function() {
     div(class="about-page",
         # Stat strip
         tags$div(style = "height:40px;"), # spacer
+        
+        tags$h2("Stats About Fast Food"),
         
         div(class = "stat-strip",
             div(class = "stat-card",
@@ -51,19 +53,19 @@ aboutTabUI <- function() {
         div(class="about-content",
             div(class="about-section",
                 tags$h2("About Our Project"),
-                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has since evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
-                tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals and towards highly processed options that are often high in calories, sodium, and fat.")
+                tags$p("Our project explores the growth, impact, and consequences of the fast-food industry in the United States. What began in the early 20th century as a convenient and affordable dining option has evolved into a dominant force in American culture, shaping how people eat, spend money, and experience food."),
+                tags$p("The rise of chains like White Castle, followed by industry leaders such as McDonald's and Burger King, introduced a model centered on speed, consistency, and low cost. While this innovation made food more accessible, it also contributed to a shift away from fresh, home-cooked meals toward highly processed options that are often high in calories, sodium, and fat.")
             ),
             tags$hr(class="about-divider"),
             div(class="about-section",
                 tags$h2("What We Examine"),
                 tags$p("This project uses interactive data visualizations to examine the relationship between fast food and public health. By analyzing nutritional information, restaurant distribution, and state-level data on obesity and poverty, this project highlights how fast food consumption is connected to broader social and economic patterns."),
                 div(class="topic-row",
-                    span(class="topic-pill", HTML("Nutritional Data")),
-                    span(class="topic-pill", HTML("Restaurant Distribution")),
-                    span(class="topic-pill", HTML("Obesity by State")),
-                    span(class="topic-pill", HTML("Poverty & Economics")),
-                    span(class="topic-pill", HTML("Race & Demographics"))
+                    span(class="topic-pill", HTML("&#x1F354; Nutritional Data")),
+                    span(class="topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
+                    span(class="topic-pill", HTML("&#x1F4CA; Obesity by State")),
+                    span(class="topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
+                    span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
                 )
             ),
             tags$hr(class="about-divider"),
@@ -175,13 +177,13 @@ ui <- fluidPage(
       .hero-eyebrow { font-family:var(--mono); font-size:.75rem; letter-spacing:.15em; text-transform:uppercase; color:var(--orange); margin-bottom:.8rem; display:inline-block; padding:.3rem .7rem; border:1px solid rgba(230,126,34,.4); }
       .hero h1 { font-family:var(--serif); font-size:clamp(2.5rem,5vw,5rem); font-weight:400; line-height:.95; letter-spacing:-.02em; margin-bottom:1rem; }
       .hero h1 em { color:var(--orange); font-style:italic; }
-      .hero-desc { color:rgba(250,247,242,.65); font-size:1.6rem; max-width:600px; line-height:1.75; margin-bottom:2rem; }
+      .hero-desc { color:rgba(250,247,242,.65); font-size:1rem; max-width:600px; line-height:1.75; margin-bottom:2rem; }
       .hero-kpis { display:flex; gap:3rem; flex-wrap:wrap; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,.1); }
       .kpi-num { font-family:var(--serif); font-size:2.8rem; color:var(--orange); line-height:1; }
       .kpi-label { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(250,247,242,.5); margin-top:.3rem; }
 
       .navbar { background:var(--dark) !important; border:none !important; border-radius:0 !important; margin-bottom:0 !important; border-bottom:2px solid var(--accent) !important; min-height:52px !important; }
-      .navbar-default .navbar-nav>li>a { color:rgba(250,247,242,.6) !important; font-family:var(--mono) !important; font-size:1.3rem !important; letter-spacing:.1em !important; text-transform:uppercase !important; padding:16px 18px !important; line-height:1.2 !important; }
+      .navbar-default .navbar-nav>li>a { color:rgba(250,247,242,.6) !important; font-family:var(--mono) !important; font-size:.75rem !important; letter-spacing:.1em !important; text-transform:uppercase !important; padding:16px 18px !important; line-height:1.2 !important; }
       .navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>li>a:hover { color:var(--orange) !important; background:rgba(255,255,255,.07) !important; }
       .navbar-brand { display:none !important; }
       .navbar-collapse { padding:0 !important; }
