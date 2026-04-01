@@ -628,9 +628,9 @@ server <- function(input, output, session) {
   active_chains <- reactiveVal(NULL)
   observe({
     ch <- all_chains_available()
-    if (is.null(isolate(active_chains()))) active_chains(ch)
+    if (is.null(isolate(active_chains()))) active_chains(character(0))
   })
-  all_selected <- reactiveVal(TRUE)
+  all_selected <- reactiveVal(FALSE)
   observeEvent(input$toggleAllChains, {
     chains <- all_chains_available()
     if (all_selected()) {
@@ -656,7 +656,7 @@ server <- function(input, output, session) {
   }, ignoreNULL=FALSE)
   output$chainFilterUI <- renderUI({
     chains <- all_chains_available()
-    checkboxGroupInput("chainFilter", "", choices=chains, selected=chains)
+    checkboxGroupInput("chainFilter", "", choices=chains, selected=character(0))
   })
   map_filtered <- reactive({
     req(map_df)
@@ -703,6 +703,10 @@ server <- function(input, output, session) {
       addLayersControl(baseGroups=c("Light","Dark","Street"),
                        options=layersControlOptions(collapsed=TRUE)) %>%
       addScaleBar(position="bottomleft")
+  })
+  
+  observe({
+    updateSelectInput(session, "mapOverlay", selected="obesity")
   })
 
   observeEvent(list(map_filtered(), input$mapOverlay), {
