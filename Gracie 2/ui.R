@@ -331,7 +331,9 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","State Health Data"),
                               div(class="section-title","Obesity Rates Across America")),
-                          div(class="section-meta","Source: CDC BRFSS · 2023")
+                          div(class="section-meta",tags$a(href = "https://data.cdc.gov/Nutrition-Physical-Activity-and-Obesity/Nutrition-Physical-Activity-and-Obesity-Behavioral/hn4x-zwk7/data_preview", 
+                                                          "Data: CDC Nutrition, Physical Activity and Obesity", 
+                                                          target = "_blank"))
                       ),
                       tabsetPanel(
                         tabPanel("State Ranking", br(),
