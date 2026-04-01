@@ -47,6 +47,15 @@ aboutTabUI <- function() {
             )
         ),
         
+        tags$div(
+          style = "text-align:center; margin:0 auto 48px; max-width:860px; padding:0 5%;",
+          tags$img(
+            src = "your-image-url-or-path.jpg",
+            alt = "Fast food image",
+            style = "width:100%; max-width:860px; border-radius:10px; object-fit:cover;"
+          )
+        ),
+        
         
         div(class="about-content",
             div(class="about-section",
