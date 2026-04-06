@@ -69,11 +69,11 @@ aboutTabUI <- function() {
                 tags$h2("What We Examine"),
                 tags$p("This project uses interactive data visualizations to examine the relationship between fast food and public health. By analyzing nutritional information, restaurant distribution, and state-level data on obesity and poverty, this project highlights how fast food consumption is connected to broader social and economic patterns."),
                 div(class="topic-row",
-                    span(class="topic-pill", HTML("&#x1F354; Nutritional Data")),
-                    span(class="topic-pill", HTML("&#x1F4CD; Restaurant Distribution")),
-                    span(class="topic-pill", HTML("&#x1F4CA; Obesity by State")),
-                    span(class="topic-pill", HTML("&#x1F4B8; Poverty & Economics")),
-                    span(class="topic-pill", HTML("&#x1F465; Race & Demographics"))
+                    span(class="topic-pill", HTML("Nutritional Data")),
+                    span(class="topic-pill", HTML("Restaurant Distribution")),
+                    span(class="topic-pill", HTML("Obesity by State")),
+                    span(class="topic-pill", HTML("Poverty & Economics")),
+                    span(class="topic-pill", HTML("Race & Demographics"))
                 )
             ),
             tags$hr(class="about-divider"),
@@ -137,7 +137,7 @@ meetTeamUI <- function() {
             # ── Member 2 ──────────────────────────────────────
             div(class="team-card",
                 div(class="team-photo-wrap",
-                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 2")
+                    tags$img(src="https://generalssports.com/images/2025/8/28/Jorgensen.jpg?width=300", alt="Team Member 2")
                 ),
                 div(class="team-card-body",
                     tags$h3(class="team-name",  "Gracie Jorgensen"),
