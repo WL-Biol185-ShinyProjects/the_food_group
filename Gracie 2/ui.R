@@ -319,12 +319,12 @@ ui <- fluidPage(
                       p(class="page-blurb",
                         "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
                       
-                      # Row 1: Healthiness grouped bar + Nutrient heatmap
+                      # Row 1: Healthiness score + Nutrient heatmap
                       fluidRow(
                         column(7,
                                div(class="chart-box",
                                    div(class="chart-box-title","Chain Healthiness Score"),
-                                   div(class="chart-box-sub","Composite score based on avg calories, sodium, saturated fat, sugar, protein & fiber per item · Higher = healthier"),
+                                   div(class="chart-box-sub","Composite score based on avg calories, sodium, sat. fat, sugar, protein & fiber · Higher = healthier"),
                                    plotlyOutput("nutrHealthChart", height="380px")
                                )
                         ),
@@ -349,7 +349,7 @@ ui <- fluidPage(
                         column(5,
                                div(class="chart-box",
                                    div(class="chart-box-title","Obesity Rate by Race/Ethnicity"),
-                                   div(class="chart-box-sub","CDC BRFSS 2023 · National · % adults with obesity"),
+                                   div(class="chart-box-sub","CDC BRFSS 2023 · National average · % adults with obesity"),
                                    plotlyOutput("obRaceChart", height="300px")
                                ),
                                div(class="chart-box",
