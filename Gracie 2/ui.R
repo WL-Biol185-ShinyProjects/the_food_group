@@ -320,7 +320,10 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Nutrition & Health"),
                               div(class="section-title","What We Eat & What It Costs Us")),
-                          div(class="section-meta","Sources: FDA · CDC BRFSS 2023")
+                          div(class="section-meta",
+                              tags$a(href = "https://www.kaggle.com/datasets/ulrikthygepedersen/fastfood-nutrition?resource=download",
+                                     "Fast Food Nutrition",
+                                     target = "_blank") )
                       ),
                       p(class="page-blurb",
                         "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
