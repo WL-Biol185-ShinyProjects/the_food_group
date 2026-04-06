@@ -492,7 +492,7 @@ server <- function(input, output, session) {
         paper_bgcolor = "#faf7f2",
         plot_bgcolor  = "white",
         xaxis = list(
-          title     = list(text="Food Insecurity Rate (%)", standoff=40),
+          title     = list(text="Food Insecurity Rate (%)", standoff=80),
           gridcolor = "#ede8df",
           tickfont  = list(size=9),
           zeroline  = FALSE,
@@ -510,11 +510,11 @@ server <- function(input, output, session) {
         annotations = list(list(
           text      = paste0("Bubble size = fast food per 1k people  \u00b7  Color intensity = ",
                              race_label, " share  \u00b7  State averages from county-level atlas data"),
-          x=0.5, y=-0.14, xref="paper", yref="paper", showarrow=FALSE,
+          x=0.5, y=-0.22, xref="paper", yref="paper", showarrow=FALSE,
           font=list(size=10.5, color="#8c7355", family="Space Mono, monospace"),
           xanchor="center"
         )),
-        margin = list(l=80, r=40, t=30, b=120),
+        margin = list(l=80, r=40, t=30, b=180),
         font   = list(family="DM Sans", size=13)
       ) %>%
       config(displayModeBar=FALSE)
