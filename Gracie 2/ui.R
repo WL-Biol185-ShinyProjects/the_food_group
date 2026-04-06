@@ -153,10 +153,11 @@ meetTeamUI <- function() {
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 3")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
-                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$h3(class="team-name",  "Gracie Jorgensen"),
+                    tags$p(class="team-role", ),
                     tags$p(class="team-bio",
-                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                           "I’m Gracie Jorgensen and I am from Macon, Georgia. I'm a junior at Washington and Lee University majoring in Biology with a Philosophy Minor on the pre-vet track. 
+")
                 )
             )
             
