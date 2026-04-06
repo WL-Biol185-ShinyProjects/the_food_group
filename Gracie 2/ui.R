@@ -346,18 +346,7 @@ ui <- fluidPage(
                                    plotlyOutput("obStateChart", height="640px")
                                )
                         ),
-                        column(5,
-                               div(class="chart-box",
-                                   div(class="chart-box-title","Obesity Rate by Race/Ethnicity"),
-                                   div(class="chart-box-sub","CDC BRFSS 2023 · National · % adults with obesity"),
-                                   plotlyOutput("obRaceChart", height="300px")
-                               ),
-                               div(class="chart-box",
-                                   div(class="chart-box-title","Physical Inactivity vs. Obesity Rate"),
-                                   div(class="chart-box-sub","Each dot = one state · CDC BRFSS 2023 · Hover for name"),
-                                   plotlyOutput("obActivityChart", height="300px")
-                               )
-                        )
+             
                       )
              ),
              
