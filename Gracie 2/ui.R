@@ -128,9 +128,9 @@ meetTeamUI <- function() {
                 ),
                 div(class="team-card-body",
                     tags$h3(class="team-name",  "Mellanese Barlow"),
-                    tags$p(class="team-role",   "Hi I am Mellanese, a Pre-vet Biology major with a minor in Poverty and Human Capabilty Studies"),
+                    tags$p(class="team-role",   ""),
                     tags$p(class="team-bio",
-                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                           "Hi I am Mellanese, a Pre-vet Biology major with a minor in Poverty and Human Capabilty Studies.")
                 )
             ),
             
