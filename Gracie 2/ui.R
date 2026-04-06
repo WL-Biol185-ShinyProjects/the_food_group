@@ -124,13 +124,13 @@ meetTeamUI <- function() {
             div(class="team-card",
                 div(class="team-photo-wrap",
                     # Replace the src below with a real photo URL or relative path
-                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
+                    tags$img(src="https://columns.wlu.edu/wp-content/uploads/2024/12/Mellanese-Barlow-2-350x233.jpg", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
                     tags$h3(class="team-name",  "Mellanese Barlow"),
-                    tags$p(class="team-role",   ""),
+                    tags$p(class="team-role",   "B.S. Biology and Minor in Poverty Studies"),
                     tags$p(class="team-bio",
-                           "Hi I am Mellanese, a Pre-Vet Biology major with a minor in Poverty and Human Capabilty Studies.")
+                           "Hi! I am a Pre-Vet Biology major with a minor in Poverty and Human Capabilty Studies.")
                 )
             ),
             
@@ -320,7 +320,10 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Nutrition & Health"),
                               div(class="section-title","What We Eat & What It Costs Us")),
-                          div(class="section-meta","Sources: FDA · CDC BRFSS 2023")
+                          div(class="section-meta",
+                              tags$a(href = "https://www.kaggle.com/datasets/ulrikthygepedersen/fastfood-nutrition?resource=download",
+                                     "Fast Food Nutrition",
+                                     target = "_blank") )
                       ),
                       p(class="page-blurb",
                         "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),

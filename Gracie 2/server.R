@@ -366,6 +366,7 @@ server <- function(input, output, session) {
       score_sug  = norm_inv(sugar),
       score_prot = norm(protein),
       score_fib  = norm(fiber),
+      #using NPI formula to get health_score
       health_score = round(0.22*score_cal + 0.22*score_sod + 0.18*score_sat +
                              0.13*score_sug + 0.15*score_prot + 0.10*score_fib, 1)
     ) %>% arrange(health_score)
