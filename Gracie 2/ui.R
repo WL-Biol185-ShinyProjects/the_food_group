@@ -399,12 +399,11 @@ ui <- fluidPage(
                           ),
                           div(class="bubble-legend",
                               tags$span(style="font-family:var(--mono);font-size:.7rem;color:var(--brown);",
-                                        HTML("Bubble size = fast food / 1k people &nbsp;&middot;&nbsp; Color intensity = % share of selected race &nbsp;&middot;&nbsp; Hover for details"))
+                                        HTML(""))
                           )
                       ),
                       div(class="chart-box",
                           div(class="chart-box-title", "Food Insecurity vs. Median Household Income — State Level"),
-                          div(class="chart-box-sub", "X = food insecurity rate \u00b7 Y = median household income \u00b7 Size = fast food per 1k \u00b7 Color = % selected race group \u00b7 Hover for state details"),
                           plotlyOutput("demoBubbleChart", height="620px")
                       )
              ),
