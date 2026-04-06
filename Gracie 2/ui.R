@@ -137,13 +137,13 @@ meetTeamUI <- function() {
             # ── Member 2 ──────────────────────────────────────
             div(class="team-card",
                 div(class="team-photo-wrap",
-                    tags$img(src="https://generalssports.com/images/2025/8/28/Jorgensen.jpg?width=300", alt="Team Member 2")
+                    tags$img(src="https://imglink.cc/cdn/_zYIttOe2u.jpeg", alt="Team Member 2")
                 ),
                 div(class="team-card-body",
                     tags$h3(class="team-name",  "Gracie Jorgensen"),
-                    tags$p(class="team-role" ),
+                    tags$p(class="team-role" , "B.S. Biology, Philosophy Minor"),
                     tags$p(class="team-bio",
-                           "Hi there! I am from Macon, Georgia. I'm a junior at Washington and Lee University majoring in Biology with a Philosophy Minor on the pre-vet track. ")
+                           "Hi there! I am from Macon, Georgia. I'm a junior at Washington and Lee University on the pre-vet track. ")
                 )
             ),
             
