@@ -319,20 +319,20 @@ ui <- fluidPage(
                       p(class="page-blurb",
                         "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
                       
-                      # Row 1: Radar + Scatter
+                      # Row 1: Healthiness score + Nutrient heatmap
                       fluidRow(
-                        column(6,
+                        column(7,
                                div(class="chart-box",
-                                   div(class="chart-box-title","Nutritional Profile by Chain"),
-                                   div(class="chart-box-sub","Normalized scores · Calories, Sodium, Fat, Protein, Sugar · Higher = more"),
-                                   plotlyOutput("nutrRadarChart", height="420px")
+                                   div(class="chart-box-title","Chain Healthiness Score"),
+                                   div(class="chart-box-sub","Composite score based on avg calories, sodium, sat. fat, sugar, protein & fiber · Higher = healthier"),
+                                   plotlyOutput("nutrHealthChart", height="380px")
                                )
                         ),
-                        column(6,
+                        column(5,
                                div(class="chart-box",
-                                   div(class="chart-box-title","Calories vs. Sodium — Every Menu Item"),
-                                   div(class="chart-box-sub","Each dot = one item · Color = restaurant · Hover for name"),
-                                   plotlyOutput("nutrScatterChart", height="420px")
+                                   div(class="chart-box-title","Nutrient Comparison by Chain"),
+                                   div(class="chart-box-sub","Average per menu item · Normalized 0\u2013100 · Darker = higher value"),
+                                   plotlyOutput("nutrHeatmapChart", height="380px")
                                )
                         )
                       ),
@@ -348,10 +348,22 @@ ui <- fluidPage(
                                uiOutput("anovaResultStrip")   # ← add this line
                         ),
                         column(5,
+<<<<<<< HEAD
                                div(class="chart-box",        # ← add this whole column
                                    div(class="chart-box-title","Obesity Rate by Census Region"),
                                    div(class="chart-box-sub","One-Way ANOVA · County-level data (n = 3,143) · USDA Food Environment Atlas 2025"),
                                    plotlyOutput("anovaBoxplot", height="640px")
+=======
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Obesity Rate by Race/Ethnicity"),
+                                   div(class="chart-box-sub","CDC BRFSS 2023 · National average · % adults with obesity"),
+                                   plotlyOutput("obRaceChart", height="300px")
+                               ),
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Physical Inactivity vs. Obesity Rate"),
+                                   div(class="chart-box-sub","Each dot = one state · CDC BRFSS 2023 · Hover for name"),
+                                   plotlyOutput("obActivityChart", height="300px")
+>>>>>>> 89e80cb00e0b8ddc24283b6221d08dc0c36c4d1f
                                )
                         )
                       )
@@ -395,12 +407,11 @@ ui <- fluidPage(
                           ),
                           div(class="bubble-legend",
                               tags$span(style="font-family:var(--mono);font-size:.7rem;color:var(--brown);",
-                                        HTML("Bubble size = fast food / 1k people &nbsp;&middot;&nbsp; Color intensity = % share of selected race &nbsp;&middot;&nbsp; Hover for details"))
+                                        HTML(""))
                           )
                       ),
                       div(class="chart-box",
                           div(class="chart-box-title", "Food Insecurity vs. Median Household Income — State Level"),
-                          div(class="chart-box-sub", "X = food insecurity rate \u00b7 Y = median household income \u00b7 Size = fast food per 1k \u00b7 Color = % selected race group \u00b7 Hover for state details"),
                           plotlyOutput("demoBubbleChart", height="620px")
                       )
              ),
