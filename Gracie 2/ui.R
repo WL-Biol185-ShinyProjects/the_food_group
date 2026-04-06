@@ -124,7 +124,7 @@ meetTeamUI <- function() {
             div(class="team-card",
                 div(class="team-photo-wrap",
                     # Replace the src below with a real photo URL or relative path
-                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
+                    tags$img(src="https://columns.wlu.edu/wp-content/uploads/2024/12/Mellanese-Barlow-2-350x233.jpg", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
                     tags$h3(class="team-name",  "Mellanese Barlow"),
