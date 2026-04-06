@@ -309,49 +309,47 @@ ui <- fluidPage(
                       )
              ),
              
-             tabPanel("Nutrition",
+             # ── COMBINED NUTRITION & OBESITY ─────────────────────────
+             tabPanel("Nutrition & Obesity",
                       div(class="section-header",
-                          div(div(class="section-label","Menu Nutrition"),
-                              div(class="section-title","What's Really in Your Meal?")),
-                          div(class="section-meta","Source: FDA · 515 Menu Items")
+                          div(div(class="section-label","Nutrition & Health"),
+                              div(class="section-title","What We Eat & What It Costs Us")),
+                          div(class="section-meta","Sources: FDA · CDC BRFSS 2023")
                       ),
                       p(class="page-blurb",
                         "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
-                      tabsetPanel(
-                        tabPanel("By Restaurant", br(), uiOutput("nutrCards")),
-                        tabPanel("Calories & Sodium", br(),
-                                 fluidRow(
-                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Calories per Menu Item"), div(class="chart-box-sub","Mean across all items per restaurant"), plotlyOutput("calChart", height="320px"))),
-                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Sodium per Menu Item (mg)"), div(class="chart-box-sub","Mean sodium content"), plotlyOutput("sodChart", height="320px")))
-                                 )
+                      
+                      # Row 1: Radar + Scatter
+                      fluidRow(
+                        column(6,
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Nutritional Profile by Chain"),
+                                   div(class="chart-box-sub","Normalized scores · Calories, Sodium, Fat, Protein, Sugar · Higher = more"),
+                                   plotlyOutput("nutrRadarChart", height="420px")
+                               )
                         ),
-                        tabPanel("Protein & Fat", br(),
-                                 fluidRow(
-                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Protein per Menu Item (g)"), plotlyOutput("protChart", height="320px"))),
-                                   column(6, div(class="chart-box", div(class="chart-box-title","Avg Total Fat per Menu Item (g)"), plotlyOutput("fatChart", height="320px")))
-                                 )
+                        column(6,
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Calories vs. Sodium — Every Menu Item"),
+                                   div(class="chart-box-sub","Each dot = one item · Color = restaurant · Hover for name"),
+                                   plotlyOutput("nutrScatterChart", height="420px")
+                               )
                         )
+                      ),
+                      
+                      # Row 2: State obesity ranked + Race obesity + Activity scatter
+                      fluidRow(
+                        column(7,
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Adult Obesity Rate by State"),
+                                   div(class="chart-box-sub","CDC BRFSS 2023 · % adults with obesity · All 50 states + DC"),
+                                   plotlyOutput("obStateChart", height="640px")
+                               )
+                        ),
+             
                       )
              ),
              
-             tabPanel("Obesity",
-                      div(class="section-header",
-                          div(div(class="section-label","State Health Data"),
-                              div(class="section-title","Obesity Rates Across America")),
-                          div(class="section-meta",tags$a(href = "https://data.cdc.gov/Nutrition-Physical-Activity-and-Obesity/Nutrition-Physical-Activity-and-Obesity-Behavioral/hn4x-zwk7/data_preview", 
-                                                          "Data: CDC Nutrition, Physical Activity and Obesity", 
-                                                          target = "_blank"))
-                      ),
-                      tabsetPanel(
-                        tabPanel("State Ranking", br(),
-                                 fluidRow(
-                                   column(6, div(class="chart-box", div(class="chart-box-title","Highest Obesity Rates — Top 15 States"), div(class="chart-box-sub","Adult obesity prevalence (%)"), plotlyOutput("obHighChart", height="440px"))),
-                                   column(6, div(class="chart-box", div(class="chart-box-title","Lowest Obesity Rates — Bottom 10 States"), div(class="chart-box-sub","Adult obesity prevalence (%)"), plotlyOutput("obLowChart", height="440px")))
-                                 )
-                        ),
-                        tabPanel("All States Table", br(), DTOutput("obTable"))
-                      )
-             ),
              
              tabPanel("Poverty",
                       div(class="section-header",
