@@ -130,7 +130,7 @@ meetTeamUI <- function() {
                     tags$h3(class="team-name",  "Mellanese Barlow"),
                     tags$p(class="team-role",   ""),
                     tags$p(class="team-bio",
-                           "Hi I am Mellanese, a Pre-vet Biology major with a minor in Poverty and Human Capabilty Studies.")
+                           "Hi I am Mellanese, a Pre-Vet Biology major with a minor in Poverty and Human Capabilty Studies.")
                 )
             ),
             
