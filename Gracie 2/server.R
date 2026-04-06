@@ -409,7 +409,6 @@ server <- function(input, output, session) {
       config(displayModeBar=FALSE)
   })
   
-<<<<<<< HEAD
   output$nutrRadarChart <- renderPlotly({
     req(nutr_summary)
     d <- nutr_summary
@@ -472,12 +471,9 @@ server <- function(input, output, session) {
       config(displayModeBar=FALSE)
   })
   
-  # ── OBESITY ─────────────────────────────────────────────────
-  output$obHighChart <- renderPlotly({
-=======
+
   # ── OBESITY: ALL STATES RANKED ───────────────────────────────
   output$obStateChart <- renderPlotly({
->>>>>>> 89e80cb00e0b8ddc24283b6221d08dc0c36c4d1f
     req(ob_df)
     d <- ob_df %>% arrange(obesity)
     col_vals <- colorRampPalette(c("#27ae60","#f39c12","#e67e22","#c0392b","#7b0000"))(nrow(d))

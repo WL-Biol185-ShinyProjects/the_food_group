@@ -348,12 +348,11 @@ ui <- fluidPage(
                                uiOutput("anovaResultStrip")   # ← add this line
                         ),
                         column(5,
-<<<<<<< HEAD
-                               div(class="chart-box",        # ← add this whole column
+                               div(class="chart-box",
                                    div(class="chart-box-title","Obesity Rate by Census Region"),
                                    div(class="chart-box-sub","One-Way ANOVA · County-level data (n = 3,143) · USDA Food Environment Atlas 2025"),
                                    plotlyOutput("anovaBoxplot", height="640px")
-=======
+                               ),
                                div(class="chart-box",
                                    div(class="chart-box-title","Obesity Rate by Race/Ethnicity"),
                                    div(class="chart-box-sub","CDC BRFSS 2023 · National average · % adults with obesity"),
@@ -363,11 +362,10 @@ ui <- fluidPage(
                                    div(class="chart-box-title","Physical Inactivity vs. Obesity Rate"),
                                    div(class="chart-box-sub","Each dot = one state · CDC BRFSS 2023 · Hover for name"),
                                    plotlyOutput("obActivityChart", height="300px")
->>>>>>> 89e80cb00e0b8ddc24283b6221d08dc0c36c4d1f
                                )
                         )
-                      )
-             ),
+                               )
+                        ),
              
              
              tabPanel("Poverty",
@@ -503,3 +501,4 @@ ui <- fluidPage(
       div("CDC · USDA ERS · FDA · US Census · QSR Magazine · KFF · BRFSS · Datafiniti")
   )
 )
+  
