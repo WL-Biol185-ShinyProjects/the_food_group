@@ -471,7 +471,7 @@ server <- function(input, output, session) {
       config(displayModeBar=FALSE)
   })
   
-
+  
   # ── OBESITY: ALL STATES RANKED ───────────────────────────────
   output$obStateChart <- renderPlotly({
     req(ob_df)
@@ -643,15 +643,15 @@ server <- function(input, output, session) {
                         line=list(color="rgba(255,255,255,0.7)",width=1.2)),
             hovertext=hover_txt, hoverinfo="text") %>%
       layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(title="Food Insecurity Rate (%)",gridcolor="#ede8df",
+             xaxis=list(title=list(text="Food Insecurity Rate (%)",standoff=100),gridcolor="#ede8df",automargin=TRUE,
                         tickfont=list(size=12),zeroline=FALSE,fixedrange=TRUE),
              yaxis=list(title="Median Household Income ($)",gridcolor="#ede8df",
                         tickfont=list(size=12),tickformat="$,",zeroline=FALSE,fixedrange=TRUE),
              annotations=list(list(
                text=paste0("Bubble size = fast food per 1k people \u00b7 Color intensity = ",race_label," share"),
-               x=0.5,y=-0.11,xref="paper",yref="paper",showarrow=FALSE,
+               x=0.5,y=-0.20,xref="paper",yref="paper",showarrow=FALSE,
                font=list(size=10.5,color="#8c7355",family="Space Mono, monospace"),xanchor="center")),
-             margin=list(l=80,r=40,t=30,b=80),
+             margin=list(l=80,r=40,t=30,b=160),
              font=list(family="DM Sans",size=13)) %>%
       config(displayModeBar=FALSE)
   })
