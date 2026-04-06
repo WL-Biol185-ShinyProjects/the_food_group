@@ -319,20 +319,20 @@ ui <- fluidPage(
                       p(class="page-blurb",
                         "A breakdown of the average nutritional content of menu items across 8 major chains. The numbers reveal stark differences: a typical McDonald's item carries over 640 calories and nearly 1,440mg of sodium, which is close to 60% of the recommended daily limit in a single item. Even chains perceived as \u201chealthier\u201d options like Subway still average over 1,270mg of sodium per item. Across the board, high sodium stands out as a consistent concern, regardless of calorie count."),
                       
-                      # Row 1: Radar + Scatter
+                      # Row 1: Healthiness grouped bar + Nutrient heatmap
                       fluidRow(
-                        column(6,
+                        column(7,
                                div(class="chart-box",
-                                   div(class="chart-box-title","Nutritional Profile by Chain"),
-                                   div(class="chart-box-sub","Normalized scores · Calories, Sodium, Fat, Protein, Sugar · Higher = more"),
-                                   plotlyOutput("nutrRadarChart", height="420px")
+                                   div(class="chart-box-title","Chain Healthiness Score"),
+                                   div(class="chart-box-sub","Composite score based on avg calories, sodium, saturated fat, sugar, protein & fiber per item · Higher = healthier"),
+                                   plotlyOutput("nutrHealthChart", height="380px")
                                )
                         ),
-                        column(6,
+                        column(5,
                                div(class="chart-box",
-                                   div(class="chart-box-title","Calories vs. Sodium — Every Menu Item"),
-                                   div(class="chart-box-sub","Each dot = one item · Color = restaurant · Hover for name"),
-                                   plotlyOutput("nutrScatterChart", height="420px")
+                                   div(class="chart-box-title","Nutrient Comparison by Chain"),
+                                   div(class="chart-box-sub","Average per menu item · Normalized 0\u2013100 · Darker = higher value"),
+                                   plotlyOutput("nutrHeatmapChart", height="380px")
                                )
                         )
                       ),
@@ -346,7 +346,18 @@ ui <- fluidPage(
                                    plotlyOutput("obStateChart", height="640px")
                                )
                         ),
-             
+                        column(5,
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Obesity Rate by Race/Ethnicity"),
+                                   div(class="chart-box-sub","CDC BRFSS 2023 · National · % adults with obesity"),
+                                   plotlyOutput("obRaceChart", height="300px")
+                               ),
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Physical Inactivity vs. Obesity Rate"),
+                                   div(class="chart-box-sub","Each dot = one state · CDC BRFSS 2023 · Hover for name"),
+                                   plotlyOutput("obActivityChart", height="300px")
+                               )
+                        )
                       )
              ),
              
