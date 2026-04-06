@@ -150,13 +150,13 @@ meetTeamUI <- function() {
             # ── Member 3 ──────────────────────────────────────
             div(class="team-card",
                 div(class="team-photo-wrap",
-                    tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 3")
+                    tags$img(src="https://generalssports.com/images/2025/11/3/Wright.jpg?width=300", alt="Team Member 3")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
-                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$h3(class="team-name",  "Jacob Wright"),
+                    tags$p(class="team-role",   "B.S. Neuroscience"),
                     tags$p(class="team-bio",
-                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                           "Hello! I am a Neuroscience major from Fredericksburg, VA. Hope you enjoy our app! Thank you to the Washington and Lee Data Science program.")
                 )
             )
             
