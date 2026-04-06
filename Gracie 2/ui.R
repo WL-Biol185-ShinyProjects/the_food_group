@@ -156,7 +156,7 @@ meetTeamUI <- function() {
                     tags$h3(class="team-name",  "Jacob Wright"),
                     tags$p(class="team-role",   "B.S. Neuroscience"),
                     tags$p(class="team-bio",
-                           "Hello! I am a Neuroscience major from Fredericksburg, VA. Hope you enjoy our app! Thank you to the Washington and Lee Data Science program."),
+                           "Hello! I am a from Fredericksburg, VA. Hope you enjoy our app! Thank you to the Washington and Lee Data Science program."),
 
                     tags$h3(class="team-name",  ""),
                     tags$p(class="team-role", ),
