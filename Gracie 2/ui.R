@@ -344,9 +344,16 @@ ui <- fluidPage(
                                    div(class="chart-box-title","Adult Obesity Rate by State"),
                                    div(class="chart-box-sub","CDC BRFSS 2023 · % adults with obesity · All 50 states + DC"),
                                    plotlyOutput("obStateChart", height="640px")
-                               )
+                               ),
+                               uiOutput("anovaResultStrip")   # ← add this line
                         ),
-             
+                        column(5,
+                               div(class="chart-box",        # ← add this whole column
+                                   div(class="chart-box-title","Obesity Rate by Census Region"),
+                                   div(class="chart-box-sub","One-Way ANOVA · County-level data (n = 3,143) · USDA Food Environment Atlas 2025"),
+                                   plotlyOutput("anovaBoxplot", height="640px")
+                               )
+                        )
                       )
              ),
              

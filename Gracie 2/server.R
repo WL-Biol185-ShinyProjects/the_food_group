@@ -180,6 +180,68 @@ if (!is.null(atlas_df)) {
   }
 }
 
+# ── ANOVA DATA: county obesity by Census region ──────────────
+COUNTY_REGION_MAP <- c(
+  CT="Northeast",ME="Northeast",MA="Northeast",NH="Northeast",RI="Northeast",
+  VT="Northeast",NJ="Northeast",NY="Northeast",PA="Northeast",
+  IL="Midwest",IN="Midwest",MI="Midwest",OH="Midwest",WI="Midwest",
+  IA="Midwest",KS="Midwest",MN="Midwest",MO="Midwest",NE="Midwest",
+  ND="Midwest",SD="Midwest",
+  DE="South",FL="South",GA="South",MD="South",NC="South",SC="South",
+  VA="South",WV="South",AL="South",KY="South",MS="South",TN="South",
+  AR="South",LA="South",OK="South",TX="South",DC="South",
+  AZ="West",CO="West",ID="West",MT="West",NV="West",NM="West",UT="West",
+  WY="West",AK="West",CA="West",HI="West",OR="West",WA="West"
+)
+
+anova_df <- NULL
+if (!is.null(atlas_df) && "ObesityRate2022" %in% names(atlas_df) &&
+    "State" %in% names(atlas_df)) {
+  anova_df <- atlas_df %>%
+    select(State, obesity = ObesityRate2022) %>%
+    filter(!is.na(obesity)) %>%
+    mutate(region = COUNTY_REGION_MAP[State]) %>%
+    filter(!is.na(region))
+}
+
+anova_results <- NULL
+if (!is.null(anova_df) && nrow(anova_df) > 0) {
+  groups      <- split(anova_df$obesity, anova_df$region)
+  grand_mean  <- mean(anova_df$obesity)
+  k           <- length(groups)
+  N           <- nrow(anova_df)
+  SS_between  <- sum(sapply(groups, function(g) length(g) * (mean(g) - grand_mean)^2))
+  SS_within   <- sum(sapply(groups, function(g) sum((g - mean(g))^2)))
+  SS_total    <- SS_between + SS_within
+  df_between  <- k - 1
+  df_within   <- N - k
+  MS_between  <- SS_between / df_between
+  MS_within   <- SS_within  / df_within
+  F_val       <- MS_between / MS_within
+  eta_sq      <- SS_between / SS_total
+  p_val       <- pf(F_val, df_between, df_within, lower.tail = FALSE)
+  
+  group_stats <- anova_df %>%
+    group_by(region) %>%
+    summarise(
+      n     = n(),
+      mean  = round(mean(obesity), 2),
+      sd    = round(sd(obesity), 2),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(mean))
+  
+  anova_results <- list(
+    F_val      = round(F_val, 2),
+    df_between = df_between,
+    df_within  = df_within,
+    p_val      = p_val,
+    eta_sq     = round(eta_sq, 4),
+    group_stats= group_stats,
+    N          = N
+  )
+}
+
 CENSUS_REGION <- c(
   CT="Northeast", ME="Northeast", MA="Northeast", NH="Northeast",
   RI="Northeast", VT="Northeast", NJ="Northeast", NY="Northeast", PA="Northeast",
@@ -332,6 +394,68 @@ server <- function(input, output, session) {
   output$protChart <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"protein",   function(v) "#27ae60", "g") })
   output$fatChart  <- renderPlotly({ req(nutr_summary); nutr_bar(nutr_summary,"total_fat", function(v) ifelse(v>30,"#c0392b",ifelse(v>20,"#e67e22","#27ae60")), "g") })
   
+  output$nutrRadarChart <- renderPlotly({
+    req(nutr_summary)
+    d <- nutr_summary
+    norm <- function(x) round((x-min(x,na.rm=TRUE))/max(max(x,na.rm=TRUE)-min(x,na.rm=TRUE),1e-6)*100,1)
+    d <- d %>% mutate(cal_n=norm(calories), sod_n=norm(sodium), fat_n=norm(total_fat),
+                      prot_n=norm(protein), sug_n=norm(sugar))
+    cats <- c("Calories","Sodium","Fat","Protein","Sugar","Calories")
+    pal  <- colorRampPalette(c("#d4380d","#e67e22","#f39c12","#27ae60","#2980b9","#702082","#8e44ad","#16a085"))(nrow(d))
+    p <- plot_ly(type="scatterpolar", fill="toself", mode="lines")
+    for (i in seq_len(nrow(d))) {
+      r <- d[i,]
+      vals <- c(r$cal_n, r$sod_n, r$fat_n, r$prot_n, r$sug_n, r$cal_n)
+      p <- p %>% add_trace(
+        r=vals, theta=cats, name=r$restaurant,
+        line=list(color=pal[i], width=2),
+        fillcolor=paste0(pal[i],"22"),
+        hovertemplate=paste0("<b>",r$restaurant,"</b><br>",
+                             "Calories: ",r$calories," kcal<br>",
+                             "Sodium: ",r$sodium," mg<br>",
+                             "Fat: ",r$total_fat,"g<br>",
+                             "Protein: ",r$protein,"g<br>",
+                             "Sugar: ",r$sugar,"g<extra></extra>")
+      )
+    }
+    p %>% layout(
+      polar=list(radialaxis=list(visible=TRUE, range=c(0,100), tickfont=list(size=10), gridcolor="#ede8df"),
+                 angularaxis=list(tickfont=list(size=12, family="DM Sans"))),
+      paper_bgcolor="#faf7f2",
+      legend=list(orientation="v", font=list(size=11)),
+      margin=list(l=40,r=40,t=20,b=20),
+      font=list(family="DM Sans", size=13)
+    ) %>% config(displayModeBar=FALSE)
+  })
+  
+  output$nutrScatterChart <- renderPlotly({
+    req(nutr_df)
+    d <- nutr_df %>% filter(!is.na(calories), !is.na(sodium))
+    pal <- c("Mcdonalds"="#FFC72C","Burger King"="#FF7F00","Wendys"="#E2231A",
+             "Taco Bell"="#702082","Subway"="#008C15","Chick Fil-A"="#DD0031",
+             "Arbys"="#8B2020","Sonic"="#FFAA00","Dairy Queen"="#0066AA")
+    cols <- sapply(d$restaurant, function(r) { v <- pal[r]; if (is.na(v)) "#888888" else v })
+    plot_ly(d, x=~sodium, y=~calories,
+            text=~paste0("<b>",item,"</b><br>",restaurant,"<br>",calories," kcal · ",sodium,"mg sodium"),
+            type="scatter", mode="markers",
+            marker=list(color=cols, size=6, opacity=0.65,
+                        line=list(color="rgba(255,255,255,0.4)", width=0.5)),
+            hoverinfo="text",
+            hovertemplate="%{text}<extra></extra>") %>%
+      layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
+             xaxis=list(title="Sodium (mg)", gridcolor="#ede8df", tickfont=list(size=11), fixedrange=TRUE),
+             yaxis=list(title="Calories (kcal)", gridcolor="#ede8df", tickfont=list(size=11), fixedrange=TRUE),
+             margin=list(l=60,r=20,t=10,b=60),
+             font=list(family="DM Sans", size=13),
+             shapes=list(list(type="line", x0=2300, x1=2300, y0=0, y1=1, yref="paper",
+                              line=list(color="#c0392b", dash="dot", width=1.2))),
+             annotations=list(list(x=2300, y=0.98, xref="x", yref="paper",
+                                   text="Daily sodium limit", showarrow=FALSE,
+                                   font=list(size=9.5, color="#c0392b", family="Space Mono"),
+                                   xanchor="left"))) %>%
+      config(displayModeBar=FALSE)
+  })
+  
   # ── OBESITY ─────────────────────────────────────────────────
   output$obHighChart <- renderPlotly({
     req(ob_df)
@@ -363,6 +487,90 @@ server <- function(input, output, session) {
       mutate(Rank=row_number(), `Obesity Rate`=paste0(obesity,"%")) %>%
       select(Rank, State=state, `Obesity Rate`) %>%
       datatable(rownames=FALSE, options=list(pageLength=25), class="stripe hover")
+  })
+  
+  # ── ANOVA: REGIONAL BOXPLOT ──────────────────────────────────
+  output$anovaBoxplot <- renderPlotly({
+    req(anova_df)
+    region_order  <- c("South","Midwest","Northeast","West")
+    region_colors <- c(South="#e8711a",Midwest="#27ae60",Northeast="#1a73e8",West="#8e44ad")
+    p <- plot_ly()
+    for (reg in region_order) {
+      vals <- anova_df %>% filter(region == reg) %>% pull(obesity)
+      p <- p %>% add_trace(
+        y         = vals, type = "box", name = reg,
+        marker    = list(color=region_colors[reg], size=3, opacity=0.4),
+        line      = list(color=region_colors[reg]),
+        fillcolor = paste0(substr(region_colors[reg],1,7),"33"),
+        hovertemplate = paste0("<b>",reg,"</b><br>Value: %{y:.1f}%<extra></extra>"),
+        boxpoints = "outliers"
+      )
+    }
+    p %>% layout(
+      paper_bgcolor = "#faf7f2", plot_bgcolor = "white",
+      yaxis    = list(title="County Obesity Rate (%)", gridcolor="#ede8df",
+                      tickfont=list(size=12), range=c(20,44)),
+      xaxis    = list(title="Census Region", tickfont=list(size=13)),
+      showlegend = FALSE,
+      margin   = list(l=60,r=20,t=15,b=50),
+      font     = list(family="DM Sans",size=13)
+    ) %>% config(displayModeBar=FALSE)
+  })
+  
+  # ── ANOVA: RESULT STRIP ──────────────────────────────────────
+  output$anovaResultStrip <- renderUI({
+    if (is.null(anova_results)) return(NULL)
+    ar <- anova_results
+    p_fmt      <- if (ar$p_val < 0.001) "< 0.001" else paste0("= ", round(ar$p_val, 4))
+    eta_interp <- if (ar$eta_sq >= 0.14) "large effect" else if (ar$eta_sq >= 0.06) "medium effect" else "small effect"
+    
+    div(style="background:white;border:1px solid var(--paper);border-top:3px solid var(--accent);padding:1.2rem 1.6rem;margin-top:-.1rem;",
+        div(style="margin-bottom:.9rem;",
+            div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem;",
+                "One-Way ANOVA — County Obesity Rate by Census Region"),
+            div(style="font-size:.8rem;color:var(--brown);font-family:var(--mono);",
+                paste0("H\u2080: All four regional means are equal  \u00b7  n = ",
+                       formatC(ar$N, format="d", big.mark=","), " counties"))
+        ),
+        div(style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.9rem;",
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("F = ", ar$F_val)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0("df(", ar$df_between, ", ", ar$df_within, ")"))
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("p ", p_fmt)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    "Reject H\u2080 at \u03b1 = 0.001")
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("\u03b7\u00b2 = ", ar$eta_sq)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0("Effect size \u2014 ", eta_interp))
+            ),
+            div(style="background:#fff3d6;border:1px solid #e0c97a;padding:.6rem 1rem;flex:2;min-width:200px;display:flex;align-items:center;",
+                div(style="font-size:.82rem;line-height:1.55;color:#5a3e00;",
+                    HTML(paste0("<b>Region explains ", round(ar$eta_sq*100,1), "% of the variance</b> in county obesity rates. ",
+                                "The South and Midwest have significantly higher obesity rates than the Northeast and West. ",
+                                "With F = ", ar$F_val, ", the probability of observing these differences by chance is effectively zero.")))
+            )
+        ),
+        div(style="display:flex;gap:.6rem;flex-wrap:wrap;",
+            lapply(seq_len(nrow(ar$group_stats)), function(i) {
+              g   <- ar$group_stats[i,]
+              col <- c(South="#e8711a",Midwest="#27ae60",Northeast="#1a73e8",West="#8e44ad")[g$region]
+              div(style=paste0("border-left:3px solid ",col,";padding:.4rem .8rem;background:var(--warm);flex:1;min-width:130px;"),
+                  div(style=paste0("font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:",col,";"), g$region),
+                  div(style="font-family:var(--serif);font-size:1.3rem;color:var(--dark);line-height:1.1;", paste0(g$mean,"%")),
+                  div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);",
+                      paste0("SD=",g$sd,"  n=",formatC(g$n,format="d",big.mark=",")))
+              )
+            })
+        )
+    )
   })
   
   # ── POVERTY ─────────────────────────────────────────────────
