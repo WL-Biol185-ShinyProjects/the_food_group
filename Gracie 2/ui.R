@@ -140,10 +140,10 @@ meetTeamUI <- function() {
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 2")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
-                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$h3(class="team-name",  "Gracie Jorgensen"),
+                    tags$p(class="team-role" ),
                     tags$p(class="team-bio",
-                           "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
+                           "Hi there! I am from Macon, Georgia. I'm a junior at Washington and Lee University majoring in Biology with a Philosophy Minor on the pre-vet track. ")
                 )
             ),
             
@@ -153,10 +153,18 @@ meetTeamUI <- function() {
                     tags$img(src="https://generalssports.com/images/2025/11/3/Wright.jpg?width=300", alt="Team Member 3")
                 ),
                 div(class="team-card-body",
+<<<<<<< HEAD
                     tags$h3(class="team-name",  "Jacob Wright"),
                     tags$p(class="team-role",   "B.S. Neuroscience"),
                     tags$p(class="team-bio",
                            "Hello! I am a Neuroscience major from Fredericksburg, VA. Hope you enjoy our app! Thank you to the Washington and Lee Data Science program.")
+=======
+                    tags$h3(class="team-name",  ""),
+                    tags$p(class="team-role", ),
+                    tags$p(class="team-bio",
+                           "
+")
+>>>>>>> 8827a2c5a36487808b7b934f2a5d5ec20dc8eaeb
                 )
             )
             
