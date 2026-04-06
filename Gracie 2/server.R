@@ -489,63 +489,6 @@ server <- function(input, output, session) {
       config(displayModeBar=FALSE)
   })
   
-  # ── OBESITY: BY RACE/ETHNICITY ────────────────────────────────
-  output$obRaceChart <- renderPlotly({
-    req(brfss_df)
-    d <- brfss_df %>%
-      filter(StratificationCategory1=="Race/Ethnicity",
-             grepl("who have obesity",Question),
-             LocationDesc != "National") %>%
-      group_by(race=Stratification1) %>%
-      summarise(obesity=round(mean(value,na.rm=TRUE),1), .groups="drop") %>%
-      filter(!is.na(obesity), race != "Other") %>%
-      arrange(obesity)
-    race_cols <- c("Non-Hispanic White"="#4e9af1","Non-Hispanic Black"="#e05c30",
-                   "Hispanic"="#44b864","Asian"="#f0c040",
-                   "American Indian/Alaska Native"="#8e44ad",
-                   "Hawaiian/Pacific Islander"="#16a085","2 or more races"="#95a5a6")
-    cols <- sapply(d$race, function(r) { v <- race_cols[r]; if(is.na(v)) "#888" else v })
-    plot_ly(d, x=~obesity, y=~reorder(race,obesity), type="bar", orientation="h",
-            marker=list(color=cols),
-            hovertemplate="<b>%{y}</b>: %{x}%<extra></extra>") %>%
-      layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df",
-                        tickfont=list(size=10), fixedrange=TRUE),
-             yaxis=list(title="", tickfont=list(size=10), fixedrange=TRUE),
-             margin=list(l=200,r=20,t=10,b=40),
-             font=list(family="DM Sans",size=12)) %>%
-      config(displayModeBar=FALSE)
-  })
-  
-  # ── OBESITY: PHYSICAL INACTIVITY SCATTER ─────────────────────
-  output$obActivityChart <- renderPlotly({
-    req(brfss_df, ob_df)
-    inactivity <- brfss_df %>%
-      filter(StratificationCategory1=="Total",
-             grepl("no leisure-time physical activity",Question)) %>%
-      select(state_abbr=LocationAbbr, inactivity=value) %>%
-      filter(state_abbr != "US", !is.na(inactivity))
-    merged <- ob_df %>%
-      mutate(state_abbr=STATE_ABBR[state]) %>%
-      filter(!is.na(state_abbr)) %>%
-      inner_join(inactivity, by="state_abbr")
-    if (nrow(merged)==0) return(NULL)
-    plot_ly(merged, x=~inactivity, y=~obesity,
-            text=~paste0("<b>",state,"</b><br>Inactivity: ",inactivity,"%<br>Obesity: ",obesity,"%"),
-            type="scatter", mode="markers",
-            marker=list(color=ob_color(merged$obesity),size=9,opacity=0.85,
-                        line=list(color="white",width=1)),
-            hoverinfo="text", hovertemplate="%{text}<extra></extra>") %>%
-      layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(title="No Leisure Physical Activity (%)", gridcolor="#ede8df",
-                        tickfont=list(size=10), fixedrange=TRUE),
-             yaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df",
-                        tickfont=list(size=10), fixedrange=TRUE),
-             margin=list(l=55,r=20,t=10,b=50),
-             font=list(family="DM Sans",size=12)) %>%
-      config(displayModeBar=FALSE)
-  })
-  
   # ── ANOVA: REGIONAL BOXPLOT ──────────────────────────────────
   output$anovaBoxplot <- renderPlotly({
     req(anova_df)

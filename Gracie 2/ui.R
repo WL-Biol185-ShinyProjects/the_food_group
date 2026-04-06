@@ -353,16 +353,6 @@ ui <- fluidPage(
                                    div(class="chart-box-sub","One-Way ANOVA · County-level data (n = 3,143) · USDA Food Environment Atlas 2025"),
                                    plotlyOutput("anovaBoxplot", height="640px")
                                ),
-                               div(class="chart-box",
-                                   div(class="chart-box-title","Obesity Rate by Race/Ethnicity"),
-                                   div(class="chart-box-sub","CDC BRFSS 2023 · National average · % adults with obesity"),
-                                   plotlyOutput("obRaceChart", height="300px")
-                               ),
-                               div(class="chart-box",
-                                   div(class="chart-box-title","Physical Inactivity vs. Obesity Rate"),
-                                   div(class="chart-box-sub","Each dot = one state · CDC BRFSS 2023 · Hover for name"),
-                                   plotlyOutput("obActivityChart", height="300px")
-                               )
                         )
                                )
                         ),
