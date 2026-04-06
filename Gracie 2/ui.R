@@ -127,8 +127,8 @@ meetTeamUI <- function() {
                     tags$img(src="https://placehold.co/400x400/ede8df/8c7355?text=Photo", alt="Team Member 1")
                 ),
                 div(class="team-card-body",
-                    tags$h3(class="team-name",  "Your Name Here"),
-                    tags$p(class="team-role",   "Your Role / Major"),
+                    tags$h3(class="team-name",  "Mellanese Barlow"),
+                    tags$p(class="team-role",   "Hi I am Mellanese, a Pre-vet Biology major with a minor in Poverty and Human Capabilty Studies"),
                     tags$p(class="team-bio",
                            "Write a short bio here — your background, what you contributed to the project, and what interests you about food systems or data science.")
                 )
