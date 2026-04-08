@@ -86,7 +86,7 @@ aboutTabUI <- function() {
                     tags$br(), tags$br(),
                     "All visualizations are built with ", tags$strong("R Shiny"), ", ",
                     tags$strong("Leaflet"), ", ", tags$strong("Plotly"), ", and ",
-                    tags$strong("DT"), ". Data reflects the most recent available reporting year for each source."
+                    tags$strong("DT"), ". Data reflects the most recent available reporting year for each source. This webpage was made with the use of claude.ai."
                 )
             )
         )
