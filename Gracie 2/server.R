@@ -383,7 +383,7 @@ server <- function(input, output, session) {
              font=list(family="DM Sans",size=13),
              annotations=list(list(
                text="Weights: Calories 22% · Sodium 22% · Sat. Fat 18% · Sugar 13% · Protein 15% · Fiber 10%",
-               x=0.5, y=-0.18, xref="paper", yref="paper", showarrow=FALSE,
+               x=0.5, y=-0.28, xref="paper", yref="paper", showarrow=FALSE,
                font=list(size=9.5,color="#8c7355",family="Space Mono"), xanchor="center"
              ))) %>%
       config(displayModeBar=FALSE)

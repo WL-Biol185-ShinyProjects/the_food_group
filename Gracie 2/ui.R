@@ -156,7 +156,7 @@ meetTeamUI <- function() {
                     tags$h3(class="team-name",  "Jacob Wright"),
                     tags$p(class="team-role",   "B.S. Neuroscience"),
                     tags$p(class="team-bio",
-                           "Hello! I am a from Fredericksburg, VA. Hope you enjoy our app! Thank you to the Washington and Lee Data Science program."),
+                           "Hello! I am a from Fredericksburg, VA. Hope you enjoy our app! Thank you to the Washington and Lee Data Science program for making this happen!"),
 
                     tags$h3(class="team-name",  ""),
                     tags$p(class="team-role", ),
@@ -302,7 +302,7 @@ ui <- fluidPage(
                                      target = "_blank"))
                       ),
                       p(class="page-blurb",
-                        "As fast food has become a defining feature of the American food landscape, with over 200,000 locations nationwide, having an understanding of where it concentrates, who it serves, and what it contains has real public health implications."),
+                        "The bar chart below ranks the top 20 chains by total U.S. systemwide sales in 2021, revealing just how dominant a handful of brands are — McDonald's alone outpaces most competitors by billions. The bubble chart plots each chain by its average sales per unit against total systemwide revenue, with bubble size reflecting total number of locations. Together, these two views separate chains that win through sheer volume of locations from those that generate outsized revenue per restaurant."),
                       div(class="chart-box",
                           div(class="chart-box-title","Systemwide Sales — Top 20 Chains"),
                           div(class="chart-box-sub","U.S. Sales in Millions USD · 2021"),
@@ -316,7 +316,7 @@ ui <- fluidPage(
              ),
              
              # ── COMBINED NUTRITION & OBESITY ─────────────────────────
-             tabPanel("Nutrition & Obesity",
+             tabPanel("Nutrition",
                       div(class="section-header",
                           div(div(class="section-label","Nutrition & Health"),
                               div(class="section-title","What We Eat & What It Costs Us")),
@@ -334,7 +334,48 @@ ui <- fluidPage(
                                div(class="chart-box",
                                    div(class="chart-box-title","Chain Healthiness Score"),
                                    div(class="chart-box-sub","Composite score based on avg calories, sodium, sat. fat, sugar, protein & fiber · Higher = healthier"),
-                                   plotlyOutput("nutrHealthChart", height="380px")
+                                   plotlyOutput("nutrHealthChart", height="380px"),
+                                   tags$div(
+                                     style="margin-top:1rem;padding:1rem 1.1rem;background:#faf7f2;border:1px solid #e8dfd0;border-radius:8px;",
+                                     tags$p(
+                                       style="font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#d4380d;margin:0 0 6px;",
+                                       "How to read this chart"
+                                     ),
+                                     tags$p(
+                                       style="font-size:.82rem;color:#3d2e1e;margin:0 0 12px;line-height:1.65;",
+                                       "Each chain is scored 0\u2013100 based on the average nutritional content of its menu items. ",
+                                       tags$strong("A higher score means fewer of the bad things (calories, sodium, saturated fat, sugar) and more of the good things (protein, fiber)."),
+                                       " Scores are relative \u2014 a chain scoring 70 is healthier than average, not necessarily healthy in an absolute sense."
+                                     ),
+                                     tags$div(
+                                       style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;",
+                                       tags$div(
+                                         style="flex:1;min-width:140px;background:white;border:1px solid #e8dfd0;border-radius:6px;padding:8px 10px;border-top:3px solid #c0392b;",
+                                         tags$div(style="font-size:.72rem;font-weight:700;color:#c0392b;margin-bottom:4px;", "Penalizes \u2193"),
+                                         tags$div(style="font-size:.75rem;color:#3d2e1e;line-height:1.6;", "High calories (22%)"),
+                                         tags$div(style="font-size:.75rem;color:#3d2e1e;line-height:1.6;", "High sodium (22%)"),
+                                         tags$div(style="font-size:.75rem;color:#3d2e1e;line-height:1.6;", "High saturated fat (18%)"),
+                                         tags$div(style="font-size:.75rem;color:#3d2e1e;line-height:1.6;", "High sugar (13%)")
+                                       ),
+                                       tags$div(
+                                         style="flex:1;min-width:140px;background:white;border:1px solid #e8dfd0;border-radius:6px;padding:8px 10px;border-top:3px solid #27ae60;",
+                                         tags$div(style="font-size:.72rem;font-weight:700;color:#27ae60;margin-bottom:4px;", "Rewards \u2191"),
+                                         tags$div(style="font-size:.75rem;color:#3d2e1e;line-height:1.6;", "High protein (15%)"),
+                                         tags$div(style="font-size:.75rem;color:#3d2e1e;line-height:1.6;", "High fiber (10%)")
+                                       )
+                                     ),
+                                     tags$p(
+                                       style="font-size:.74rem;color:#7a6a57;margin:0;line-height:1.5;border-top:1px solid #e8dfd0;padding-top:8px;",
+                                       "Percentages reflect each nutrient's weight in the final score, based on the ",
+                                       tags$a(
+                                         href="https://www.fao.org/nutrition/requirements/en/",
+                                         target="_blank",
+                                         style="color:#d4380d;text-decoration:underline;",
+                                         "Nutrient Profiling Index (NPI)"
+                                       ),
+                                       " model used in public health research."
+                                     )
+                                   )
                                )
                         ),
                         column(5,
@@ -346,22 +387,36 @@ ui <- fluidPage(
                         )
                       ),
                       
-                      # Row 2: State obesity ranked + Race obesity + Activity scatter
+             ),
+             
+             tabPanel("Obesity",
+                      div(class="section-header",
+                          div(div(class="section-label","Obesity & Public Health"),
+                              div(class="section-title","Adult Obesity Rates Across America")),
+                          div(class="section-meta",
+                              tags$a(href = "https://www.cdc.gov/brfss/index.html",
+                                     "Data: CDC BRFSS 2023",
+                                     target = "_blank"))
+                      ),
+                      p(class="page-blurb",
+                        "Adult obesity rates vary dramatically by state and region. The South consistently records the highest rates, while the Northeast and West tend to fare better. The ANOVA analysis below confirms these regional differences are statistically significant, not a product of chance — region alone explains a meaningful share of the variation in county-level obesity rates across all 3,143 U.S. counties."),
+                      
+                      # Row 2: State obesity ranked + ANOVA boxplot
                       fluidRow(
                         column(7,
                                div(class="chart-box",
                                    div(class="chart-box-title","Adult Obesity Rate by State"),
                                    div(class="chart-box-sub","CDC BRFSS 2023 · % adults with obesity · All 50 states + DC"),
                                    plotlyOutput("obStateChart", height="640px")
-                               ),
-                               uiOutput("anovaResultStrip")   # ← add this line
+                               )
                         ),
                         column(5,
                                div(class="chart-box",
                                    div(class="chart-box-title","Obesity Rate by Census Region"),
                                    div(class="chart-box-sub","One-Way ANOVA · County-level data (n = 3,143) · USDA Food Environment Atlas 2025"),
-                                   plotlyOutput("anovaBoxplot", height="640px")
+                                   plotlyOutput("anovaBoxplot", height="400px")
                                ),
+                               uiOutput("anovaResultStrip")
                         )
                                )
                         ),
