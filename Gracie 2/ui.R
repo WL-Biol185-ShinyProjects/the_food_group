@@ -82,7 +82,7 @@ aboutTabUI <- function() {
                 div(class="about-footer-note",
                     tags$strong("Datasets used in this project include:"),
                     tags$br(),
-                    HTML("&#x2022; Top 50 Fast-Food Chains in the USA (systemwide sales & unit counts)<br>&#x2022; Fast-food nutritional information by menu item<br>&#x2022; National Obesity by State (CDC / BRFSS)<br>&#x2022; Poverty rates by state (U.S. Census Bureau, 2023)<br>&#x2022; Race &amp; ethnicity demographics by state<br>&#x2022; Fast-food restaurant geolocation data"),
+                    HTML("&#x2022; Top 50 Fast-Food Chains in the USA (systemwide sales & unit counts)<br>&#x2022; Fast-food nutritional information by menu item<br>&#x2022; National Obesity by State (CDC / BRFSS)<br>&#x2022; Poverty  (U.S. Census Bureau, 2023)<br>&#x2022; Race &amp; ethnicity demographics by state<br>&#x2022; Fast-food restaurant geolocation data"),
                     tags$br(), tags$br(),
                     "All visualizations are built with ", tags$strong("R Shiny"), ", ",
                     tags$strong("Leaflet"), ", ", tags$strong("Plotly"), ", and ",
@@ -508,7 +508,14 @@ ui <- fluidPage(
                       uiOutput("raceInsecStrip"),
                       p(class="page-blurb",
                         style="font-size:1.3rem;margin-top:1.5rem;",
-                        "One might expect that counties with less fast food would have lower food insecurity — but the data does not support that assumption. Low fast food density does not mean food secure. Many of the counties with the fewest fast food restaurants per capita are deeply rural areas where access to any food source is limited, what researchers call food deserts. Meanwhile, dense urban and suburban counties may have abundant fast food but still struggle with affordability. The t-test below examines whether counties above and below the median fast food density differ significantly in food insecurity rates, and the result reveals that the relationship is more complex than density alone can explain."),
+                        "One might expect that counties with less fast food would have lower food insecurity — but the data does not support that assumption. Low fast food density does not mean food secure. Many of the counties with the fewest fast food restaurants per capita are deeply rural areas where access to any food source is limited, what researchers call food deserts. Meanwhile, dense urban and suburban counties may have abundant fast food but still struggle with affordability. The t-test below examines whether counties above and below the median fast food density differ significantly in food insecurity rates, and the result reveals that the relationship is more complex than density alone can explain. ",
+                        tags$a(
+                          href="https://www.feedingamerica.org/hunger-in-america/food-insecurity",
+                          target="_blank",
+                          style="color:#d4380d;text-decoration:underline;font-family:'Space Mono',monospace;font-size:.78rem;",
+                          "What is food insecurity?"
+                        )
+                      ),
                       div(class="chart-box",
                           div(class="chart-box-title", "Food Insecurity Rate by Fast Food Density"),
                           div(class="chart-box-sub", "Welch two-sample t-test · County level · Split at median fast food restaurants per 1,000 people"),
@@ -521,8 +528,10 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Interactive Map"),
                               div(class="section-title","Fast Food Across America")),
-                          div(class="section-meta","Source: Datafiniti / Kaggle · 9,999 locations")
-                      ),
+                          div(class="section-meta",
+                              tags$a(href="https://www.kaggle.com/datasets/datafiniti/fast-food-restaurants",
+                                     "Source: Datafiniti / Kaggle · 9,999 locations",
+                                     target="_blank"))                      ),
                       fluidRow(
                         column(9,
                                div(class="map-control-row",
@@ -555,8 +564,10 @@ ui <- fluidPage(
                       div(class="section-header",
                           div(div(class="section-label","Geographic Comparison · USDA Food Environment Atlas 2025"),
                               div(class="section-title","Compare Any Two Variables, County by County")),
-                          div(class="section-meta","3,153 U.S. counties · Obesity, Diabetes, Poverty, Food Security & more")
-                      ),
+                          div(class="section-meta",
+                              tags$a(href="https://www.ers.usda.gov/data-products/food-environment-atlas/data-access-and-documentation-downloads",
+                                     "3,153 U.S. counties · Obesity, Diabetes, Poverty, Food Security & more",
+                                     target="_blank"))                      ),
                       div(class="compare-pickers",
                           div(class="compare-picker-box",
                               span(class="compare-map-label left","Left Map — Variable A"),
