@@ -604,6 +604,77 @@ ui <- fluidPage(
                               br(), leafletOutput("compareMapB", height="420px"), br(),
                               uiOutput("compareLegendB")
                           )
+                      ),
+                      tags$div(
+                        style="margin-top:1.5rem;",
+                        tags$button(
+                          id="dictToggle",
+                          onclick="var p=document.getElementById('dictPanel');var b=document.getElementById('dictToggle');if(p.style.display==='none'){p.style.display='block';b.innerHTML='Variable Dictionary &#9650;'}else{p.style.display='none';b.innerHTML='Variable Dictionary &#9660;'}",
+                          style="font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;background:#faf7f2;border:1px solid #e8dfd0;color:#8c7355;padding:.5rem 1.2rem;cursor:pointer;width:100%;text-align:left;",
+                          HTML("Variable Dictionary &#9660;")
+                        ),
+                        tags$div(
+                          id="dictPanel",
+                          style="display:none;background:white;border:1px solid #e8dfd0;border-top:none;padding:1.4rem 1.6rem;",
+                          tags$div(
+                            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;",
+                            
+                            # Health
+                            tags$div(
+                              tags$p(style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:#d4380d;margin:0 0 8px;","Health"),
+                              tags$p(style="font-size:.78rem;color:#3d2e1e;line-height:1.7;margin:0;",
+                                     tags$strong("Obesity Rate (2023): "), "% of adults with BMI \u2265 30.", tags$br(),
+                                     tags$strong("Diabetes Rate (2019): "), "% of adults diagnosed with diabetes.", tags$br(),
+                                     tags$strong("Physically Active HS % (2021): "), "% of high school students meeting physical activity guidelines.")
+                            ),
+                            
+                            # Food Security
+                            tags$div(
+                              tags$p(style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:#d4380d;margin:0 0 8px;","Food Security"),
+                              tags$p(style="font-size:.78rem;color:#3d2e1e;line-height:1.7;margin:0;",
+                                     tags$strong("Food Insecurity % (2021-23): "), "% of population lacking consistent access to adequate food.", tags$br(),
+                                     tags$strong("Very Low Food Security %: "), "% experiencing severely reduced food intake.", tags$br(),
+                                     tags$strong("Low Food Access % (2019): "), "% of population living more than 1 mile (urban) or 10 miles (rural) from a supermarket.", tags$br(),
+                                     tags$strong("Low Income + Low Access %: "), "% who are both low income and far from a supermarket.", tags$br(),
+                                     tags$strong("Children Low Access %: "), "% of children living far from a supermarket.")
+                            ),
+                            
+                            # Economics
+                            tags$div(
+                              tags$p(style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:#d4380d;margin:0 0 8px;","Economics"),
+                              tags$p(style="font-size:.78rem;color:#3d2e1e;line-height:1.7;margin:0;",
+                                     tags$strong("Poverty Rate % (2021): "), "% of population below the federal poverty line.", tags$br(),
+                                     tags$strong("Child Poverty Rate % (2021): "), "% of children below the federal poverty line.", tags$br(),
+                                     tags$strong("Deep Poverty Rate % (2021): "), "% of population below 50% of the federal poverty line.", tags$br(),
+                                     tags$strong("Median HH Income $ (2021): "), "Median annual household income in dollars.", tags$br(),
+                                     tags$strong("SNAP Participation % (2022): "), "% of population receiving SNAP (food stamp) benefits.", tags$br(),
+                                     tags$strong("School Lunch % (2021): "), "% of students receiving free or reduced-price school lunch.")
+                            ),
+                            
+                            # Food Environment
+                            tags$div(
+                              tags$p(style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:#d4380d;margin:0 0 8px;","Food Environment"),
+                              tags$p(style="font-size:.78rem;color:#3d2e1e;line-height:1.7;margin:0;",
+                                     tags$strong("Fast Food per 1k (2020): "), "Number of fast food restaurants per 1,000 residents.", tags$br(),
+                                     tags$strong("Grocery Stores per 1k (2020): "), "Number of grocery stores per 1,000 residents.", tags$br(),
+                                     tags$strong("Dollar Stores per 1k (2020): "), "Number of dollar stores per 1,000 residents.", tags$br(),
+                                     tags$strong("Conv Stores per 1k (2020): "), "Number of convenience stores per 1,000 residents.", tags$br(),
+                                     tags$strong("Rec Facilities per 1k (2020): "), "Number of recreational facilities per 1,000 residents.", tags$br(),
+                                     tags$strong("Farmers Markets per 1k (2018): "), "Number of farmers markets per 1,000 residents.")
+                            ),
+                            
+                            # Demographics
+                            tags$div(
+                              tags$p(style="font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:#d4380d;margin:0 0 8px;","Demographics"),
+                              tags$p(style="font-size:.78rem;color:#3d2e1e;line-height:1.7;margin:0;",
+                                     tags$strong("% White (2020): "), "% of county population identifying as White alone.", tags$br(),
+                                     tags$strong("% Black (2020): "), "% of county population identifying as Black or African American.", tags$br(),
+                                     tags$strong("% Hispanic (2020): "), "% of county population identifying as Hispanic or Latino.", tags$br(),
+                                     tags$strong("% Age 65+ (2020): "), "% of county population aged 65 or older.", tags$br(),
+                                     tags$strong("% Under 18 (2020): "), "% of county population under the age of 18.")
+                            )
+                          )
+                        )
                       )
              ),
              
