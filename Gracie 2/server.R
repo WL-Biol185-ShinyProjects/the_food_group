@@ -245,6 +245,55 @@ if (!is.null(anova_df) && nrow(anova_df) > 0) {
   )
 }
 
+# ── ANOVA DATA: county poverty by Census region ──────────────
+pov_anova_df <- NULL
+if (!is.null(atlas_df) && "PovRate2021" %in% names(atlas_df) &&
+    "State" %in% names(atlas_df)) {
+  pov_anova_df <- atlas_df %>%
+    select(State, poverty = PovRate2021) %>%
+    filter(!is.na(poverty)) %>%
+    mutate(region = COUNTY_REGION_MAP[State]) %>%
+    filter(!is.na(region))
+}
+
+pov_anova_results <- NULL
+if (!is.null(pov_anova_df) && nrow(pov_anova_df) > 0) {
+  groups     <- split(pov_anova_df$poverty, pov_anova_df$region)
+  grand_mean <- mean(pov_anova_df$poverty)
+  k          <- length(groups)
+  N          <- nrow(pov_anova_df)
+  SS_between <- sum(sapply(groups, function(g) length(g) * (mean(g) - grand_mean)^2))
+  SS_within  <- sum(sapply(groups, function(g) sum((g - mean(g))^2)))
+  SS_total   <- SS_between + SS_within
+  df_between <- k - 1
+  df_within  <- N - k
+  MS_between <- SS_between / df_between
+  MS_within  <- SS_within  / df_within
+  F_val      <- MS_between / MS_within
+  eta_sq     <- SS_between / SS_total
+  p_val      <- pf(F_val, df_between, df_within, lower.tail = FALSE)
+  
+  pov_group_stats <- pov_anova_df %>%
+    group_by(region) %>%
+    summarise(
+      n    = n(),
+      mean = round(mean(poverty), 2),
+      sd   = round(sd(poverty), 2),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(mean))
+  
+  pov_anova_results <- list(
+    F_val      = round(F_val, 2),
+    df_between = df_between,
+    df_within  = df_within,
+    p_val      = p_val,
+    eta_sq     = round(eta_sq, 4),
+    group_stats= pov_group_stats,
+    N          = N
+  )
+}
+
 CENSUS_REGION <- c(
   CT="Northeast",ME="Northeast",MA="Northeast",NH="Northeast",RI="Northeast",
   VT="Northeast",NJ="Northeast",NY="Northeast",PA="Northeast",
@@ -575,6 +624,88 @@ server <- function(input, output, session) {
   })
   
   # ── POVERTY ─────────────────────────────────────────────────
+  output$povAnovaBoxplot <- renderPlotly({
+    req(pov_anova_df)
+    region_order  <- c("South","Midwest","Northeast","West")
+    region_colors <- c(South="#e8711a",Midwest="#27ae60",Northeast="#1a73e8",West="#8e44ad")
+    p <- plot_ly()
+    for (reg in region_order) {
+      vals <- pov_anova_df %>% filter(region == reg) %>% pull(poverty)
+      p <- p %>% add_trace(
+        y         = vals, type = "box", name = reg,
+        marker    = list(color=region_colors[reg], size=3, opacity=0.4),
+        line      = list(color=region_colors[reg]),
+        fillcolor = paste0(substr(region_colors[reg],1,7),"33"),
+        hovertemplate = paste0("<b>",reg,"</b><br>Value: %{y:.1f}%<extra></extra>"),
+        boxpoints = "outliers"
+      )
+    }
+    p %>% layout(
+      paper_bgcolor = "#faf7f2", plot_bgcolor = "white",
+      yaxis    = list(title="County Poverty Rate (%)", gridcolor="#ede8df",
+                      tickfont=list(size=12)),
+      xaxis    = list(title="Census Region", tickfont=list(size=13)),
+      showlegend = FALSE,
+      margin   = list(l=60,r=20,t=15,b=50),
+      font     = list(family="DM Sans",size=13)
+    ) %>% config(displayModeBar=FALSE)
+  })
+  
+  output$povAnovaStrip <- renderUI({
+    if (is.null(pov_anova_results)) return(NULL)
+    ar     <- pov_anova_results
+    p_fmt  <- if (ar$p_val < 0.001) "< 0.001" else paste0("= ", round(ar$p_val, 4))
+    eta_interp <- if (ar$eta_sq >= 0.14) "large effect" else if (ar$eta_sq >= 0.06) "medium effect" else "small effect"
+    
+    div(style="background:white;border:1px solid var(--paper);border-top:3px solid var(--accent);padding:1.2rem 1.6rem;margin-top:-.1rem;",
+        div(style="margin-bottom:.9rem;",
+            div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem;",
+                "One-Way ANOVA — County Poverty Rate by Census Region"),
+            div(style="font-size:.8rem;color:var(--brown);font-family:var(--mono);",
+                paste0("H\u2080: All four regional means are equal  \u00b7  n = ",
+                       formatC(ar$N, format="d", big.mark=","), " counties"))
+        ),
+        div(style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.9rem;",
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("F = ", ar$F_val)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0("df(", ar$df_between, ", ", ar$df_within, ")"))
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("p ", p_fmt)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    "Reject H\u2080 at \u03b1 = 0.001")
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("\u03b7\u00b2 = ", ar$eta_sq)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0("Effect size \u2014 ", eta_interp))
+            ),
+            div(style="background:#fff3d6;border:1px solid #e0c97a;padding:.6rem 1rem;flex:2;min-width:200px;display:flex;align-items:center;",
+                div(style="font-size:.82rem;line-height:1.55;color:#5a3e00;",
+                    HTML(paste0("<b>Region explains ", round(ar$eta_sq*100,1), "% of the variance</b> in county poverty rates. ",
+                                "The South consistently records the highest poverty rates across its counties. ",
+                                "With F = ", ar$F_val, ", the probability of observing these differences by chance is effectively zero.")))
+            )
+        ),
+        div(style="display:flex;gap:.6rem;flex-wrap:wrap;",
+            lapply(seq_len(nrow(ar$group_stats)), function(i) {
+              g   <- ar$group_stats[i,]
+              col <- c(South="#e8711a",Midwest="#27ae60",Northeast="#1a73e8",West="#8e44ad")[g$region]
+              div(style=paste0("border-left:3px solid ",col,";padding:.4rem .8rem;background:var(--warm);flex:1;min-width:130px;"),
+                  div(style=paste0("font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:",col,";"), g$region),
+                  div(style="font-family:var(--serif);font-size:1.3rem;color:var(--dark);line-height:1.1;", paste0(g$mean,"%")),
+                  div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);",
+                      paste0("SD=",g$sd,"  n=",formatC(g$n,format="d",big.mark=",")))
+              )
+            })
+        )
+    )
+  })
+  
   output$povChart <- renderPlotly({
     req(pov_df)
     d <- head(pov_df,15) %>% arrange(pct_poverty)
@@ -592,14 +723,74 @@ server <- function(input, output, session) {
     req(ob_df, pov_df)
     merged <- inner_join(ob_df %>% select(state,obesity),
                          pov_df %>% select(state,pct_poverty), by="state")
-    plot_ly(merged, x=~pct_poverty, y=~obesity, text=~state, type="scatter", mode="markers",
-            marker=list(size=11,color=ob_color(merged$obesity),opacity=0.85,
-                        line=list(color="white",width=1.5)),
-            hovertemplate="<b>%{text}</b><br>Poverty: %{x}%<br>Obesity: %{y}%<extra></extra>") %>%
+    fit <- lm(obesity ~ pct_poverty, data=merged)
+    x_seq <- seq(min(merged$pct_poverty, na.rm=TRUE), max(merged$pct_poverty, na.rm=TRUE), length.out=100)
+    y_seq <- predict(fit, newdata=data.frame(pct_poverty=x_seq))
+    plot_ly() %>%
+      add_trace(data=merged, x=~pct_poverty, y=~obesity, text=~state,
+                type="scatter", mode="markers",
+                marker=list(size=11, color=ob_color(merged$obesity), opacity=0.85,
+                            line=list(color="white", width=1.5)),
+                hovertemplate="<b>%{text}</b><br>Poverty: %{x}%<br>Obesity: %{y}%<extra></extra>",
+                name="States") %>%
+      add_trace(x=x_seq, y=y_seq, type="scatter", mode="lines",
+                line=list(color="#d4380d", width=2, dash="solid"),
+                hoverinfo="skip", name="Regression line") %>%
       layout(paper_bgcolor="#faf7f2", plot_bgcolor="white",
-             xaxis=list(title="Poverty Rate (%)", gridcolor="#ede8df", tickfont=list(size=12)),
-             yaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df", tickfont=list(size=12)),
-             margin=list(l=60,r=20,t=20,b=60), font=list(family="DM Sans",size=13))
+             xaxis=list(title="Poverty Rate (%)", gridcolor="#ede8df", tickfont=list(size=12), fixedrange=TRUE),
+             yaxis=list(title="Obesity Rate (%)", gridcolor="#ede8df", tickfont=list(size=12), fixedrange=TRUE),
+             margin=list(l=60,r=20,t=20,b=60),
+             showlegend=FALSE,
+             font=list(family="DM Sans",size=13)) %>%
+      config(displayModeBar=FALSE)
+  })
+  
+  output$regressionStrip <- renderUI({
+    req(ob_df, pov_df)
+    merged <- inner_join(ob_df %>% select(state,obesity),
+                         pov_df %>% select(state,pct_poverty), by="state")
+    fit     <- lm(obesity ~ pct_poverty, data=merged)
+    s       <- summary(fit)
+    r2      <- round(s$r.squared, 3)
+    slope   <- round(coef(fit)[2], 3)
+    pval    <- s$coefficients[2,4]
+    p_fmt   <- if (pval < 0.001) "< 0.001" else paste0("= ", round(pval, 4))
+    interp  <- if (r2 >= 0.5) "strong" else if (r2 >= 0.25) "moderate" else "weak"
+    
+    div(style="background:white;border:1px solid var(--paper);border-top:3px solid var(--accent);padding:1.2rem 1.6rem;margin-top:-.1rem;",
+        div(style="margin-bottom:.9rem;",
+            div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem;",
+                "Linear Regression — Poverty Rate vs. Obesity Rate"),
+            div(style="font-size:.8rem;color:var(--brown);font-family:var(--mono);",
+                paste0("n = ", nrow(merged), " states + DC  \u00b7  OLS estimate"))
+        ),
+        div(style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.9rem;",
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("R\u00b2 = ", r2)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0(interp, " fit"))
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("p ", p_fmt)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    "Slope statistically significant")
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("+", slope, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    "obesity per 1% rise in poverty")
+            ),
+            div(style="background:#fff3d6;border:1px solid #e0c97a;padding:.6rem 1rem;flex:2;min-width:200px;display:flex;align-items:center;",
+                div(style="font-size:.82rem;line-height:1.55;color:#5a3e00;",
+                    HTML(paste0("<b>Poverty explains ", round(r2*100,1), "% of the variation in state obesity rates.</b> ",
+                                "For every additional 1 percentage point in poverty rate, obesity rises by ", slope,
+                                " points on average. This is a ", interp, " and statistically significant relationship.")))
+            )
+        )
+    )
   })
   
   # ── DEMOGRAPHICS ─────────────────────────────────────────────
@@ -655,6 +846,208 @@ server <- function(input, output, session) {
              margin=list(l=80,r=40,t=30,b=160),
              font=list(family="DM Sans",size=13)) %>%
       config(displayModeBar=FALSE)
+  })
+  
+  # ── DEMOGRAPHICS: T-TEST ─────────────────────────────────────
+  output$raceInsecBoxplot <- renderPlotly({
+    req(atlas_df)
+    county_df <- atlas_df %>%
+      filter(!is.na(FoodInsecPct2123), !is.na(PctWhite2020)) %>%
+      mutate(majority = ifelse(PctWhite2020 >= 50, "Majority White", "Majority Non-White"))
+    grp_colors <- c("Majority White"="#1a73e8", "Majority Non-White"="#e8711a")
+    p <- plot_ly()
+    for (grp in c("Majority White", "Majority Non-White")) {
+      vals <- county_df %>% filter(majority == grp) %>% pull(FoodInsecPct2123)
+      p <- p %>% add_trace(
+        y         = vals, type = "box", name = grp,
+        marker    = list(color=grp_colors[grp], size=2, opacity=0.3),
+        line      = list(color=grp_colors[grp]),
+        fillcolor = paste0(substr(grp_colors[grp],1,7),"33"),
+        hovertemplate = paste0("<b>",grp,"</b><br>Food Insecurity: %{y:.1f}%<extra></extra>"),
+        boxpoints = "outliers"
+      )
+    }
+    p %>% layout(
+      paper_bgcolor = "#faf7f2", plot_bgcolor = "white",
+      yaxis    = list(title="Food Insecurity Rate (%)", gridcolor="#ede8df", tickfont=list(size=12)),
+      xaxis    = list(title="", tickfont=list(size=13)),
+      showlegend = FALSE,
+      margin   = list(l=60,r=20,t=15,b=50),
+      font     = list(family="DM Sans",size=13)
+    ) %>% config(displayModeBar=FALSE)
+  })
+
+  output$raceInsecStrip <- renderUI({
+    req(atlas_df)
+    county_df <- atlas_df %>%
+      filter(!is.na(FoodInsecPct2123), !is.na(PctWhite2020)) %>%
+      mutate(majority = ifelse(PctWhite2020 >= 50, "Majority White", "Majority Non-White"))
+    grp_white    <- county_df %>% filter(majority=="Majority White")     %>% pull(FoodInsecPct2123)
+    grp_nonwhite <- county_df %>% filter(majority=="Majority Non-White") %>% pull(FoodInsecPct2123)
+    tt           <- t.test(grp_nonwhite, grp_white, var.equal=FALSE)
+    p_fmt        <- if (tt$p.value < 0.001) "< 0.001" else paste0("= ", round(tt$p.value, 4))
+    mean_white    <- round(mean(grp_white,    na.rm=TRUE), 2)
+    mean_nonwhite <- round(mean(grp_nonwhite, na.rm=TRUE), 2)
+    diff          <- round(mean_nonwhite - mean_white, 2)
+    sig           <- tt$p.value < 0.05
+
+    div(style="background:white;border:1px solid var(--paper);border-top:3px solid var(--accent);padding:1.2rem 1.6rem;margin-top:-.1rem;",
+        div(style="margin-bottom:.9rem;",
+            div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem;",
+                "Welch Two-Sample T-Test — Food Insecurity by Majority Racial Group"),
+            div(style="font-size:.8rem;color:var(--brown);font-family:var(--mono);",
+                paste0("H\u2080: Mean food insecurity is equal between groups  \u00b7  n = ",
+                       formatC(nrow(county_df), format="d", big.mark=","), " counties"))
+        ),
+        div(style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.9rem;",
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("t = ", round(tt$statistic, 2))),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0("df = ", round(tt$parameter, 1)))
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("p ", p_fmt)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    if (sig) "Reject H\u2080 at \u03b1 = 0.05" else "Fail to reject H\u2080")
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0(if(diff >= 0) "+" else "", diff, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    "difference in mean food insecurity")
+            ),
+            div(style="background:#fff3d6;border:1px solid #e0c97a;padding:.6rem 1rem;flex:2;min-width:200px;display:flex;align-items:center;",
+                div(style="font-size:.82rem;line-height:1.55;color:#5a3e00;",
+                    HTML(paste0(
+                      "<b>Majority non-white counties average ", mean_nonwhite, "% food insecurity</b> compared to ",
+                      mean_white, "% in majority white counties — a difference of ", abs(diff), " percentage points. ",
+                      if (sig) paste0("This difference is statistically significant across ",
+                                      formatC(nrow(county_df), format="d", big.mark=","),
+                                      " counties, suggesting a meaningful relationship between racial demographics and food insecurity.")
+                      else "This difference does not reach statistical significance at the 0.05 level."
+                    )))
+            )
+        ),
+        div(style="display:flex;gap:.6rem;flex-wrap:wrap;",
+            div(style="border-left:3px solid #1a73e8;padding:.4rem .8rem;background:var(--warm);flex:1;min-width:130px;",
+                div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#1a73e8;", "Majority White"),
+                div(style="font-family:var(--serif);font-size:1.3rem;color:var(--dark);line-height:1.1;", paste0(mean_white, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);",
+                    paste0("n = ", formatC(length(grp_white), format="d", big.mark=","), " counties"))
+            ),
+            div(style="border-left:3px solid #e8711a;padding:.4rem .8rem;background:var(--warm);flex:1;min-width:130px;",
+                div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#e8711a;", "Majority Non-White"),
+                div(style="font-family:var(--serif);font-size:1.3rem;color:var(--dark);line-height:1.1;", paste0(mean_nonwhite, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);",
+                    paste0("n = ", formatC(length(grp_nonwhite), format="d", big.mark=","), " counties"))
+            )
+        )
+    )
+  })
+  
+  # ── DEMOGRAPHICS: T-TEST 2 ───────────────────────────────────
+  output$ffInsecBoxplot <- renderPlotly({
+    req(atlas_df)
+    county_df <- atlas_df %>%
+      filter(!is.na(FoodInsecPct2123), !is.na(FFRPer1k2020)) %>%
+      mutate(ff_group = ifelse(FFRPer1k2020 >= median(FFRPer1k2020, na.rm=TRUE),
+                               "High Fast Food Density", "Low Fast Food Density"))
+    grp_colors <- c("High Fast Food Density"="#d4380d", "Low Fast Food Density"="#27ae60")
+    p <- plot_ly()
+    for (grp in c("High Fast Food Density", "Low Fast Food Density")) {
+      vals <- county_df %>% filter(ff_group == grp) %>% pull(FoodInsecPct2123)
+      p <- p %>% add_trace(
+        y         = vals, type = "box", name = grp,
+        marker    = list(color=grp_colors[grp], size=2, opacity=0.3),
+        line      = list(color=grp_colors[grp]),
+        fillcolor = paste0(substr(grp_colors[grp],1,7),"33"),
+        hovertemplate = paste0("<b>",grp,"</b><br>Food Insecurity: %{y:.1f}%<extra></extra>"),
+        boxpoints = "outliers"
+      )
+    }
+    p %>% layout(
+      paper_bgcolor = "#faf7f2", plot_bgcolor = "white",
+      yaxis    = list(title="Food Insecurity Rate (%)", gridcolor="#ede8df", tickfont=list(size=12)),
+      xaxis    = list(title="", tickfont=list(size=13)),
+      showlegend = FALSE,
+      margin   = list(l=60,r=20,t=15,b=50),
+      font     = list(family="DM Sans",size=13)
+    ) %>% config(displayModeBar=FALSE)
+  })
+  
+  output$ffInsecStrip <- renderUI({
+    req(atlas_df)
+    county_df <- atlas_df %>%
+      filter(!is.na(FoodInsecPct2123), !is.na(FFRPer1k2020)) %>%
+      mutate(ff_group = ifelse(FFRPer1k2020 >= median(FFRPer1k2020, na.rm=TRUE),
+                               "High Fast Food Density", "Low Fast Food Density"))
+    grp_high <- county_df %>% filter(ff_group=="High Fast Food Density") %>% pull(FoodInsecPct2123)
+    grp_low  <- county_df %>% filter(ff_group=="Low Fast Food Density")  %>% pull(FoodInsecPct2123)
+    tt           <- t.test(grp_high, grp_low, var.equal=FALSE)
+    p_fmt        <- if (tt$p.value < 0.001) "< 0.001" else paste0("= ", round(tt$p.value, 4))
+    mean_high    <- round(mean(grp_high, na.rm=TRUE), 2)
+    mean_low     <- round(mean(grp_low,  na.rm=TRUE), 2)
+    diff         <- round(mean_high - mean_low, 2)
+    sig          <- tt$p.value < 0.05
+    med_ff       <- round(median(county_df$FFRPer1k2020, na.rm=TRUE), 2)
+    
+    div(style="background:white;border:1px solid var(--paper);border-top:3px solid var(--accent);padding:1.2rem 1.6rem;margin-top:-.1rem;",
+        div(style="margin-bottom:.9rem;",
+            div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.2rem;",
+                "Welch Two-Sample T-Test — Food Insecurity by Fast Food Density"),
+            div(style="font-size:.8rem;color:var(--brown);font-family:var(--mono);",
+                paste0("H\u2080: Mean food insecurity is equal between groups  \u00b7  n = ",
+                       formatC(nrow(county_df), format="d", big.mark=","),
+                       " counties  \u00b7  Split at median ", med_ff, " restaurants per 1k people"))
+        ),
+        div(style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.9rem;",
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("t = ", round(tt$statistic, 2))),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    paste0("df = ", round(tt$parameter, 1)))
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0("p ", p_fmt)),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    if (sig) "Reject H\u2080 at \u03b1 = 0.05" else "Fail to reject H\u2080")
+            ),
+            div(style="background:var(--warm);border:1px solid var(--paper);padding:.6rem 1rem;flex:1;min-width:120px;",
+                div(style="font-family:var(--serif);font-size:1.7rem;color:var(--accent);line-height:1;",
+                    paste0(if(diff >= 0) "+" else "", diff, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);margin-top:.25rem;",
+                    "difference in mean food insecurity")
+            ),
+            div(style="background:#fff3d6;border:1px solid #e0c97a;padding:.6rem 1rem;flex:2;min-width:200px;display:flex;align-items:center;",
+                div(style="font-size:.82rem;line-height:1.55;color:#5a3e00;",
+                    HTML(paste0(
+                      "<b>High fast food density counties average ", mean_high, "% food insecurity</b> compared to ",
+                      mean_low, "% in low density counties — a difference of ", abs(diff), " percentage points. ",
+                      if (sig) paste0("This difference is statistically significant across ",
+                                      formatC(nrow(county_df), format="d", big.mark=","),
+                                      " counties, suggesting counties with more fast food per capita also experience higher rates of food insecurity.")
+                      else "This difference does not reach statistical significance at the 0.05 level."
+                    )))
+            )
+        ),
+        div(style="display:flex;gap:.6rem;flex-wrap:wrap;",
+            div(style="border-left:3px solid #d4380d;padding:.4rem .8rem;background:var(--warm);flex:1;min-width:130px;",
+                div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#d4380d;", "High Fast Food Density"),
+                div(style="font-family:var(--serif);font-size:1.3rem;color:var(--dark);line-height:1.1;", paste0(mean_high, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);",
+                    paste0("n = ", formatC(length(grp_high), format="d", big.mark=","), " counties"))
+            ),
+            div(style="border-left:3px solid #27ae60;padding:.4rem .8rem;background:var(--warm);flex:1;min-width:130px;",
+                div(style="font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:#27ae60;", "Low Fast Food Density"),
+                div(style="font-family:var(--serif);font-size:1.3rem;color:var(--dark);line-height:1.1;", paste0(mean_low, "%")),
+                div(style="font-family:var(--mono);font-size:.62rem;color:var(--brown);",
+                    paste0("n = ", formatC(length(grp_low), format="d", big.mark=","), " counties"))
+            )
+        )
+    )
   })
   
   # ── MAP ──────────────────────────────────────────────────────

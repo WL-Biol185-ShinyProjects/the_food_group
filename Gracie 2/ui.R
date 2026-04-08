@@ -400,6 +400,14 @@ ui <- fluidPage(
                       ),
                       p(class="page-blurb",
                         "Adult obesity rates vary dramatically by state and region. The South consistently records the highest rates, while the Northeast and West tend to fare better. The ANOVA analysis below confirms these regional differences are statistically significant, not a product of chance — region alone explains a meaningful share of the variation in county-level obesity rates across all 3,143 U.S. counties."),
+                      tags$div(
+                        style="display:inline-block;background:#fff3d6;border:1px solid #e0c97a;border-left:4px solid #d4380d;border-radius:6px;padding:8px 14px;margin-bottom:1.8rem;",
+                        tags$span(
+                          style="font-family:'Space Mono',monospace;font-size:.75rem;color:#5a3e00;line-height:1.6;",
+                          tags$strong(style="color:#d4380d;","How obesity is defined: "),
+                          "All rates reflect the percentage of adults with a Body Mass Index (BMI) of 30 or higher, the clinical threshold for obesity, as measured by the CDC Behavioral Risk Factor Surveillance System (BRFSS)."
+                        )
+                      ),
                       
                       # Row 2: State obesity ranked + ANOVA boxplot
                       fluidRow(
@@ -433,9 +441,36 @@ ui <- fluidPage(
                           ),
                       p(class="page-blurb",
                         "Poverty and poor health outcomes tend to have correlation in America. States with the highest poverty rates (Louisiana, Mississippi, New Mexico, and West Virginia) also consistently rank among the highest for obesity. The scatter plot to the right makes this relationship visible: as poverty rates rise, obesity rates tend to rise with them. This is no coincidence. In high-poverty areas, fast food is often the most affordable and accessible source of calories, fresh grocery options are scarce, and the chronic stress of financial insecurity compounds poor health outcomes."),
+                      tags$div(
+                        style="display:inline-block;background:#fff3d6;border:1px solid #e0c97a;border-left:4px solid #d4380d;border-radius:6px;padding:8px 14px;margin-bottom:1.8rem;",
+                        tags$span(
+                          style="font-family:'Space Mono',monospace;font-size:.75rem;color:#5a3e00;line-height:1.6;",
+                          tags$strong(style="color:#d4380d;","How obesity is defined: "),
+                          "All rates reflect the percentage of adults with a Body Mass Index (BMI) of 30 or higher, the clinical threshold for obesity, as measured by the CDC Behavioral Risk Factor Surveillance System (BRFSS)."
+                        )
+                      ),
                       fluidRow(
-                        column(6, div(class="chart-box", div(class="chart-box-title","Highest Poverty Rates — Top 15 States"), div(class="chart-box-sub","% of all people in poverty · 2023"), plotlyOutput("povChart", height="440px"))),
-                        column(6, div(class="chart-box", div(class="chart-box-title","Poverty vs. Obesity Correlation"), div(class="chart-box-sub","Each dot = one state. Hover for details."), plotlyOutput("scatterChart", height="440px")))
+                        column(6,
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Highest Poverty Rates — Top 15 States"),
+                                   div(class="chart-box-sub","% of all people in poverty · 2023"),
+                                   plotlyOutput("povChart", height="440px")
+                               ),
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Poverty Rate by Census Region"),
+                                   div(class="chart-box-sub","One-Way ANOVA · County-level data · USDA Food Environment Atlas 2025"),
+                                   plotlyOutput("povAnovaBoxplot", height="400px")
+                               ),
+                               uiOutput("povAnovaStrip")
+                        ),
+                        column(6,
+                               div(class="chart-box",
+                                   div(class="chart-box-title","Poverty vs. Obesity Correlation"),
+                                   div(class="chart-box-sub","Each dot = one state · Red line = OLS regression fit · Hover for details."),
+                                   plotlyOutput("scatterChart", height="440px")
+                               ),
+                               uiOutput("regressionStrip")
+                        )
                       )
              )
              ,
@@ -443,7 +478,7 @@ ui <- fluidPage(
              tabPanel("Demographics",
                       div(class="section-header",
                           div(div(class="section-label","Demographics · Food Environment Atlas 2025"),
-                              div(class="section-title","Food Insecurity, Income & Fast Food Density by Race")),
+                              div(class="section-title","Food Insecurity, Income & Fast Food Density by Race and State")),
                           div(class="section-meta",tags$a(href = "https://www.ers.usda.gov/data-products/food-environment-atlas/data-access-and-documentation-downloads",
                                                           "USDA: Food Environment Atlas",
                                                           target = "_blank"))
@@ -465,7 +500,21 @@ ui <- fluidPage(
                       div(class="chart-box",
                           div(class="chart-box-title", "Food Insecurity vs. Median Household Income — State Level"),
                           plotlyOutput("demoBubbleChart", height="620px")
-                      )
+                      ),
+                      div(class="chart-box",
+                          div(class="chart-box-title", "Food Insecurity Rate by Majority Racial Group"),
+                          div(class="chart-box-sub", "Welch two-sample t-test · County level · Majority defined as % White exceeding 50% of county population"),                          plotlyOutput("raceInsecBoxplot", height="380px")
+                      ),
+                      uiOutput("raceInsecStrip"),
+                      p(class="page-blurb",
+                        style="font-size:1.3rem;margin-top:1.5rem;",
+                        "One might expect that counties with less fast food would have lower food insecurity — but the data does not support that assumption. Low fast food density does not mean food secure. Many of the counties with the fewest fast food restaurants per capita are deeply rural areas where access to any food source is limited, what researchers call food deserts. Meanwhile, dense urban and suburban counties may have abundant fast food but still struggle with affordability. The t-test below examines whether counties above and below the median fast food density differ significantly in food insecurity rates, and the result reveals that the relationship is more complex than density alone can explain."),
+                      div(class="chart-box",
+                          div(class="chart-box-title", "Food Insecurity Rate by Fast Food Density"),
+                          div(class="chart-box-sub", "Welch two-sample t-test · County level · Split at median fast food restaurants per 1,000 people"),
+                          plotlyOutput("ffInsecBoxplot", height="380px")
+                      ),
+                      uiOutput("ffInsecStrip")
              ),
              
              tabPanel("Map",
